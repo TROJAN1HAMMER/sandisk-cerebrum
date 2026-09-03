@@ -1,0 +1,87 @@
+{
+  "metadata": {
+    "evaluated_at": "2026-09-03 15:58:11 UTC",
+    "validation_dies_evaluated": 27972,
+    "validation_wafers_count": 32,
+    "actual_failures": 1056,
+    "actual_passes": 26916,
+    "runtimes": {
+      "model_A_time_s": 0.0,
+      "model_B_time_s": 0.0,
+      "total_eval_time_s": 0.056
+    }
+  },
+  "model_A": {
+    "accuracy": 0.9735,
+    "f1": 0.4907,
+    "auc_pr": 0.4498,
+    "roc_auc": 0.7934,
+    "precision": 0.8947,
+    "recall": 0.3381,
+    "tp": 357,
+    "fp": 42,
+    "fn": 699,
+    "tn": 26874
+  },
+  "model_B": {
+    "accuracy": 0.9706,
+    "f1": 0.4707,
+    "auc_pr": 0.4659,
+    "roc_auc": 0.8336,
+    "precision": 0.7374,
+    "recall": 0.3456,
+    "tp": 365,
+    "fp": 130,
+    "fn": 691,
+    "tn": 26786
+  },
+  "cascade_gate_B": {
+    "accuracy": 0.973,
+    "f1": 0.5072,
+    "auc_pr": 0.4677,
+    "roc_auc": 0.799,
+    "precision": 0.8138,
+    "recall": 0.3684,
+    "tp": 389,
+    "fp": 89,
+    "fn": 667,
+    "tn": 26827,
+    "escalation_count": 3317,
+    "escalation_rate_pct": 11.86,
+    "compute_saved_pct": 88.14,
+    "gross_fn_recovered": 37,
+    "tp_lost": 5,
+    "net_tp_gain": 32,
+    "new_fp": 47
+  },
+  "cascade_gate_C": {
+    "accuracy": 0.9737,
+    "f1": 0.5064,
+    "auc_pr": 0.4604,
+    "roc_auc": 0.7935,
+    "precision": 0.8707,
+    "recall": 0.357,
+    "tp": 377,
+    "fp": 56,
+    "fn": 679,
+    "tn": 26860,
+    "escalation_count": 1626,
+    "escalation_rate_pct": 5.81,
+    "compute_saved_pct": 94.19,
+    "gross_fn_recovered": 30,
+    "tp_lost": 10,
+    "net_tp_gain": 20,
+    "new_fp": 14
+  },
+  "integrity_checks": {
+    "canonical_split": "PASS",
+    "runtime_reproducible": "PASS",
+    "model_artifacts_loaded": "PASS",
+    "prediction_row_count": "Expected: 27,972 / Actual: 27972",
+    "validation_wafers": "Expected: 32 / Actual: 32",
+    "prediction_mismatch_count": 0,
+    "delta_f1_vs_authoritative": 0.0,
+    "delta_auc_vs_authoritative": 0.0,
+    "status_message": "\u2713 LIVE EVALUATION REPRODUCES AUTHORITATIVE BENCHMARK"
+  }
+}

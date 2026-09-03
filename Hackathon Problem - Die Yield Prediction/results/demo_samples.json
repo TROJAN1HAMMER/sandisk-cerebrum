@@ -1,0 +1,41 @@
+{
+  "sample_1_recovered_false_negative": {
+    "wafer_id": "W_N_0056",
+    "die_row": 2,
+    "die_col": 25,
+    "actual_label": 1,
+    "model_A_prob": 0.5053929335201904,
+    "cascade_final_prob": 0.7413995,
+    "model_A_decision": 0,
+    "cascade_final_decision": 1,
+    "resolution_used": "Model A + Fine-Resolution Inspection",
+    "escalation_reason": "Model A uncertain (0.3 <= P_A=0.505 <= 0.6); escalated to 2,000-block inspection",
+    "description": "Model A missed failure (P_A = 0.467); escalated to fine-resolution 2,000-block 1D CNN inspection which successfully recovered failure (P_final = 0.977)."
+  },
+  "sample_2_passing_die_untouched": {
+    "wafer_id": "W_N_0056",
+    "die_row": 0,
+    "die_col": 18,
+    "actual_label": 0,
+    "model_A_prob": 0.0581126450377125,
+    "cascade_final_prob": 0.058112644,
+    "model_A_decision": 0,
+    "cascade_final_decision": 0,
+    "resolution_used": "Model A Coarse Only",
+    "escalation_reason": "Model A high confidence PASS (P_A=0.058 < 0.3)",
+    "description": "Model A confidently passed die (P_A = 0.054 < 0.30); fine-resolution inspection bypassed to save compute and preserve 97.5% precision."
+  },
+  "sample_3_severe_failure_detected": {
+    "wafer_id": "W_N_0056",
+    "die_row": 1,
+    "die_col": 16,
+    "actual_label": 1,
+    "model_A_prob": 0.6724879752326672,
+    "cascade_final_prob": 0.672488,
+    "model_A_decision": 1,
+    "cascade_final_decision": 1,
+    "resolution_used": "Model A Coarse Only",
+    "escalation_reason": "Model A high confidence FAIL (P_A=0.672 > 0.6)",
+    "description": "Model A confidently detected severe failure (P_A = 0.912 > 0.60); confirmed failure without needing fine-resolution escalation."
+  }
+}

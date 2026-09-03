@@ -1,0 +1,5 @@
+Group,Description,Die Count,Mean Model A Risk,Mean CNN Risk
+Group A: Model A Correct / Cascade Correct,Severe failures with strong parametric signal detected by both,1016,0.713,0.9733
+Group B: Model A FN / Cascade Recovered,Failures with weak parametric signature recovered via 1D ConvNet block sequence,138,0.4674,0.9774
+Group C: Model A Correct / Cascade Incorrect Change,Passing dies with random noise spikes triggering false alarms in gate region,77,0.4346,0.9848
+Group D: Model A FN / Cascade Still Missed,Extremely subtle failures with weak parametric AND weak block anomaly signals,116,0.2921,0.9703

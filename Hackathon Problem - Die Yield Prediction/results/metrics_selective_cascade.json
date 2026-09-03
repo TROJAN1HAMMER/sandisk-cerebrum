@@ -1,0 +1,17 @@
+{
+  "system_name": "Selective Multi-Resolution Cascade (Gate C)",
+  "gate_window": "[0.30, 0.60]",
+  "f1": 0.9133359715077166,
+  "precision": 0.9180588703261734,
+  "recall": 0.9086614173228347,
+  "auc_pr": 0.9243172354762226,
+  "roc_auc": 0.985428724340571,
+  "model_A_fn_total": 254,
+  "model_A_fn_recovered": 138,
+  "fn_recovery_rate_pct": 54.330708661417326,
+  "new_false_positives": 77,
+  "delta_f1": 0.03444323794370274,
+  "delta_auc_pr": -0.020472227120937436,
+  "delta_precision_pct": -5.698911431874021,
+  "delta_recall_pct": 10.866141732283463
+}

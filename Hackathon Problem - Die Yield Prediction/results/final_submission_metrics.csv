@@ -1,0 +1,4 @@
+System,F1,AUC-PR,Precision,Recall,ROC-AUC,FN Recovery,New FP,Escalation Rate
+Model A (Parametric+Spatial Baseline),0.8789,0.9448,97.50%,80.00%,0.986,—,—,0.0%
+Unrestricted Dual-Stream Model B,0.2312,0.2152,23.41%,22.83%,0.745,33 / 254 (13.0%),+923,100.0%
+"Selective Multi-Resolution Cascade (Gate C [0.30, 0.60])",0.9133,0.9243,91.81%,90.87%,0.9854,138 / 254 (54.33%),+77,5.69%

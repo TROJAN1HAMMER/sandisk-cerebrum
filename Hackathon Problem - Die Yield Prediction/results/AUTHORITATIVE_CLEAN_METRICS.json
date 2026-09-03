@@ -1,0 +1,135 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "created_at": "2026-09-03T14:20:52Z",
+    "description": "Authoritative Clean Verification Metrics for SanDisk Die Yield Prediction Project",
+    "dataset": {
+      "file": "input/train.csv",
+      "eligible_filter": "old_label == 0",
+      "split_file": "results/canonical_wafer_split.json",
+      "total_validation_dies": 27972,
+      "validation_wafers_count": 32,
+      "positive_failures_count": 1056,
+      "negative_passes_count": 26916,
+      "fail_rate_pct": 3.7752
+    }
+  },
+  "model_A": {
+    "model_name": "Model A Baseline (Parametric + Spatial LightGBM)",
+    "threshold": 0.51,
+    "f1": 0.4907,
+    "auc_pr": 0.4498,
+    "roc_auc": 0.7934,
+    "precision": 0.8947,
+    "recall": 0.3381,
+    "brier_score": 0.04561,
+    "confusion_matrix": {
+      "tp": 357,
+      "fn": 699,
+      "fp": 42,
+      "tn": 26874
+    }
+  },
+  "model_B": {
+    "model_name": "Model B (B4: 506 Param/Spatial + 20 Block Engineered Features)",
+    "threshold": 0.5376,
+    "f1": 0.4707,
+    "auc_pr": 0.4659,
+    "roc_auc": 0.8336,
+    "precision": 0.7374,
+    "recall": 0.3456,
+    "brier_score": 0.04546,
+    "confusion_matrix": {
+      "tp": 365,
+      "fn": 691,
+      "fp": 130,
+      "tn": 26786
+    },
+    "delta_vs_model_A": {
+      "delta_auc_pr": 0.0161,
+      "delta_f1": -0.0201,
+      "delta_roc_auc": 0.0402,
+      "gross_fn_recovered": 47,
+      "new_false_positives": 88
+    }
+  },
+  "cascade_gate_B": {
+    "gate_name": "Selective Cascade Gate B",
+    "gating_window": "[0.25, 0.55]",
+    "model_A_threshold": 0.51,
+    "model_B_threshold": 0.5376,
+    "escalation_count": 3317,
+    "escalation_rate_pct": 11.86,
+    "compute_saved_pct": 88.14,
+    "f1": 0.5072,
+    "auc_pr": 0.4677,
+    "roc_auc": 0.799,
+    "precision": 0.8138,
+    "recall": 0.3684,
+    "brier_score": 0.04175,
+    "confusion_matrix": {
+      "tp": 389,
+      "fn": 667,
+      "fp": 89,
+      "tn": 26827
+    },
+    "fn_recovery_metrics": {
+      "model_A_fn_total": 699,
+      "gross_fn_recovered": 37,
+      "gross_fn_recovery_rate_pct": 5.29,
+      "tp_lost_by_model_B": 5,
+      "net_tp_gain": 32,
+      "new_false_positives": 47
+    },
+    "delta_vs_model_A": {
+      "delta_auc_pr": 0.018,
+      "delta_f1": 0.0164,
+      "relative_auc_pr_gain_pct": 3.99,
+      "relative_f1_gain_pct": 3.35
+    }
+  },
+  "cascade_gate_C": {
+    "gate_name": "Selective Cascade Gate C",
+    "gating_window": "[0.30, 0.60]",
+    "model_A_threshold": 0.51,
+    "model_B_threshold": 0.5376,
+    "escalation_count": 1626,
+    "escalation_rate_pct": 5.81,
+    "compute_saved_pct": 94.19,
+    "f1": 0.5064,
+    "auc_pr": 0.4604,
+    "roc_auc": 0.7935,
+    "precision": 0.8707,
+    "recall": 0.357,
+    "brier_score": 0.04282,
+    "confusion_matrix": {
+      "tp": 377,
+      "fn": 679,
+      "fp": 56,
+      "tn": 26860
+    },
+    "fn_recovery_metrics": {
+      "model_A_fn_total": 699,
+      "gross_fn_recovered": 30,
+      "gross_fn_recovery_rate_pct": 4.29,
+      "tp_lost_by_model_B": 10,
+      "net_tp_gain": 20,
+      "new_false_positives": 14
+    },
+    "delta_vs_model_A": {
+      "delta_auc_pr": 0.0107,
+      "delta_f1": 0.0157,
+      "relative_auc_pr_gain_pct": 2.38,
+      "relative_f1_gain_pct": 3.19
+    }
+  },
+  "consistency_checks": {
+    "model_A_confusion_balance": true,
+    "model_B_confusion_balance": true,
+    "gate_B_confusion_balance": true,
+    "gate_C_confusion_balance": true,
+    "gate_B_recovery_equation": true,
+    "gate_C_recovery_equation": true,
+    "status": "ALL_CONSISTENCY_CHECKS_PASSED"
+  }
+}

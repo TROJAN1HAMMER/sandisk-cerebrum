@@ -1,0 +1,5 @@
+model,gate,threshold,escalation_count,escalation_rate,TP,FP,FN,TN,precision,recall,F1,AUC_PR,ROC_AUC,FN_recovered_gross,TP_lost,net_TP_gain,new_FP,relative_AUC_PR_change_vs_A,relative_F1_change_vs_A
+Model A (Parametric+Spatial),None (0% Escalation),0.5100,0,0.00%,357,42,699,26874,89.47%,33.81%,0.4907,0.4498,0.7934,— (0),— (0),— (0),— (0),+0.00%,+0.00%
+Model B (B4: Param+Spatial+EngBlocks),Unrestricted (100% Inspection),0.5376,27972,100.00%,365,130,691,26786,73.74%,34.56%,0.4707,0.4659,0.8336,47 (6.72%),39,+8,+88,+3.59%,-4.08%
+Selective Multi-Resolution Cascade,"Gate B [0.25, 0.55]","Dynamic (A:0.51, B:0.5376)",3317,11.86%,389,89,667,26827,81.38%,36.84%,0.5072,0.4677,0.799,37 (5.29%),5,+32,+47,+3.99%,+3.35%
+Selective Multi-Resolution Cascade,"Gate C [0.30, 0.60]","Dynamic (A:0.51, B:0.5376)",1626,5.81%,377,56,679,26860,87.07%,35.70%,0.5064,0.4604,0.7935,30 (4.29%),10,+20,+14,+2.36%,+3.20%

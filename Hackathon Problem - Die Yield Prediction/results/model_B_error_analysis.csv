@@ -1,0 +1,5 @@
+Group,Model_A,Model_B,Delta
+True Failures Detected (TP),357,365,+8
+Missed Subtle Failures (FN),699,691,-8 (6.7% recovered)
+False Alarms (FP),42,130,+88
+True Passing Dies (TN),26874,26786,-88

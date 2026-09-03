@@ -1,0 +1,8 @@
+Experiment,Description,Num_Features,Optimal_Threshold,F1,AUC-PR,ROC-AUC,Precision,Recall,TP,FP,FN,TN,Train_Time_s,Infer_Time_ms
+B0,Model A Only (500 Parametric + 6 Spatial),506,0.51,0.4907,0.4497,0.7934,89.47%,33.81%,357,42,699,26874,4.5,120.0
+B1,Block Scalar Summaries Only (16 features),16,0.4199,0.1394,0.0804,0.6652,8.93%,31.72%,335,3415,721,23501,0.7,132.84
+B2,Block Engineered Anomaly Features Only (20 features),20,0.465,0.1432,0.0825,0.6721,9.93%,25.66%,271,2457,785,24459,0.78,126.53
+B3,1D CNN Block Embeddings Only (32 features),32,0.3339,0.1326,0.0759,0.6697,8.47%,30.49%,322,3478,734,23438,1.29,182.76
+B4,Model A (506) + Block Engineered Features (20),526,0.5376,0.4707,0.4659,0.8336,73.74%,34.56%,365,130,691,26786,25.26,248.79
+B5,Model A (506) + 1D CNN Block Embeddings (32) [Dual-Stream],538,0.5327,0.2014,0.1771,0.7363,16.87%,25.00%,264,1301,792,25615,24.4,223.65
+B6,Model A (506) + Block Eng (20) + CNN Embeds (32),558,0.528,0.1992,0.1766,0.7362,16.60%,24.91%,263,1321,793,25595,26.36,238.64
