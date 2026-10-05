@@ -101,7 +101,7 @@ print(f"    - Confusion:  TP={cm_A['tp']}, FN={cm_A['fn']}, FP={cm_A['fp']}, TN=
 # Baseline assertions
 assert abs(metrics_A['f1'] - 0.4900) < 0.005, f"Discrepancy in Model A F1: {metrics_A['f1']}"
 assert abs(metrics_A['auc_pr'] - 0.4493) < 0.005, f"Discrepancy in Model A AUC-PR: {metrics_A['auc_pr']}"
-print("  ✅ Model A Baseline Verified and Authoritatively Locked.")
+print("  [PASS] Model A Baseline Verified and Authoritatively Locked.")
 
 # ==============================================================================
 # 3. PARSE 2,000 BLOCK READINGS & EXTRACT FEATURE BASES
@@ -240,7 +240,7 @@ print("\n" + exp_df.to_string(index=False))
 
 # Identify Best Model B variant
 best_exp = max(experiments[1:], key=lambda x: x['AUC-PR'])
-print(f"\n🏆 Best Model B Variant: {best_exp['Experiment']} ({best_exp['Description']})")
+print(f"\nBest Model B Variant: {best_exp['Experiment']} ({best_exp['Description']})")
 print(f"   AUC-PR: {best_exp['AUC-PR']} | F1: {best_exp['F1']} | Precision: {best_exp['Precision']} | Recall: {best_exp['Recall']}")
 
 val_probs_B = best_exp['_probs']

@@ -18,7 +18,7 @@ df = pd.read_csv(val_pred_path)
 print(f"Total Validation Dies in CSV: {len(df):,}")
 if 'old_label' in df.columns:
     assert (df['old_label'] == 0).all(), "Data Leakage Warning: Non-eligible dies (old_label == 1) found in validation predictions!"
-    print("✅ PASS: All dies in validation predictions are eligible pre-test passing dies (old_label == 0).")
+    print("[PASS]: All dies in validation predictions are eligible pre-test passing dies (old_label == 0).")
 
 y_true = df['label'].values
 p_A = df['model_A_prob'].values

@@ -50,7 +50,7 @@ RUNTIME_EVAL_CSV_PATH = os.path.join(RESULTS_DIR, 'runtime_evaluation_prediction
 # Page Configuration
 st.set_page_config(
     page_title="SANDISK | Semiconductor Yield Intelligence",
-    page_icon="⚡",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -339,7 +339,7 @@ def plot_error_donut(cm_dict, title="Classification Breakdown"):
 # ----------------------------------------------------
 st.sidebar.markdown("""
 <div style="padding: 10px 0; border-bottom: 1px solid #30363D; margin-bottom: 12px;">
-    <h2 style="color: #F0F6FC; margin: 0; font-size: 1.35rem; font-weight: 700;">⚡ SANDISK CEREBRUM</h2>
+    <h2 style="color: #F0F6FC; margin: 0; font-size: 1.35rem; font-weight: 700;">SANDISK CEREBRUM</h2>
     <p style="color: #8B949E; margin: 2px 0 0 0; font-size: 0.8rem;">Die Yield Intelligence Control Room</p>
 </div>
 """, unsafe_allow_html=True)
@@ -377,7 +377,7 @@ st.sidebar.markdown("""
 st.markdown("""
 <div class="top-bar">
     <div>
-        <h2 style="margin: 0; color: #F0F6FC; font-size: 1.35rem;">⚡ Semiconductor Die Yield Control Room</h2>
+        <h2 style="margin: 0; color: #F0F6FC; font-size: 1.35rem;">Semiconductor Die Yield Control Room</h2>
         <p style="margin: 2px 0 0 0; color: #8B949E; font-size: 0.85rem;">Selective Multi-Resolution Cascade Screening System</p>
     </div>
     <div style="display: flex; gap: 12px; align-items: center;">
@@ -392,7 +392,7 @@ st.markdown("""
 # PAGE 1: OVERVIEW / YIELD CONTROL ROOM
 # ====================================================
 if nav_page == "• Overview / Control Room":
-    st.subheader("💡 Multi-Resolution Selective Cascade Screening")
+    st.subheader("Multi-Resolution Selective Cascade Screening")
     st.markdown("""
     **Inspect every die cheaply. Escalate only uncertain dies for deeper block-level inspection.**  
     Model A performs high-throughput parametric screening ($500$ electrical parameters + $6$ spatial features). When Model A's risk probability falls inside the uncertainty window ($0.25 \\le P_A \\le 0.55$), the die is escalated to Model B for $2,000$ sub-die block anomaly inspection.
@@ -419,7 +419,7 @@ if nav_page == "• Overview / Control Room":
     col_flow, col_impact = st.columns([1.3, 0.9])
     
     with col_flow:
-        st.subheader("⚙️ Selective Cascade Decision Architecture")
+        st.subheader("Selective Cascade Decision Architecture")
         st.markdown("""
         <div class="control-box">
             <div style="font-family: monospace; font-size: 0.9rem; line-height: 1.6; color: #C9D1D9;">
@@ -439,7 +439,7 @@ if nav_page == "• Overview / Control Room":
         """, unsafe_allow_html=True)
         
     with col_impact:
-        st.subheader("📈 Quantified Cascade Impact")
+        st.subheader("Quantified Cascade Impact")
         st.markdown(f"""
         <div class="control-box">
             <h4 style="margin-top: 0; color: #58A6FF;">Key Production Gains vs Standalone Model A</h4>
@@ -458,7 +458,7 @@ if nav_page == "• Overview / Control Room":
 # PAGE 2: WAFER INTELLIGENCE
 # ====================================================
 elif nav_page == "• Wafer Intelligence":
-    st.subheader("🗺️ Wafer Intelligence & Spatial Defect Map")
+    st.subheader("Wafer Intelligence & Spatial Defect Map")
     st.markdown("Interactive spatial inspection of all **32 clean holdout validation wafers**.")
     
     if diag_df is not None:
@@ -565,31 +565,31 @@ elif nav_page == "• Wafer Intelligence":
 # PAGE 3: LIVE DIE CHECK (NEW INTERACTIVE INFERENCE)
 # ====================================================
 elif nav_page == "• Live Die Check":
-    st.subheader("⚡ Live Die Inference & Cascade Execution Console")
+    st.subheader("Live Die Inference & Cascade Execution Console")
     st.markdown("Execute real-time live inference across the multi-resolution cascade using the locked production model weights.")
     
     # 3 Input Modes Tabs
     tab_val, tab_csv, tab_manual = st.tabs([
-        "🔍 Mode A: Existing Validation Die & Demos",
-        "📂 Mode B: Upload CSV for Live Batch Prediction",
-        "⚙️ Mode C: Manual Parameter Input"
+        "Mode A: Existing Validation Die & Demos",
+        "Mode B: Upload CSV for Live Batch Prediction",
+        "Mode C: Manual Parameter Input"
     ])
     
     # ------------------ TAB A: VALIDATION DIE & DEMOS ------------------
     with tab_val:
         st.markdown("""
         <div class="control-box">
-            <b style="color: #58A6FF;">⚡ Guided Hackathon Demo Presets:</b> Click a button below to load a real die from the validation set and execute the cascade:
+            <b style="color: #58A6FF;">Guided Hackathon Demo Presets:</b> Click a button below to load a real die from the validation set and execute the cascade:
         </div>
         """, unsafe_allow_html=True)
         
         col_d1, col_d2, col_d3 = st.columns(3)
         with col_d1:
-            btn_demo_1 = st.button("🔥 Demo 1: Recovered Failure (W_N_0057 R:32 C:23)")
+            btn_demo_1 = st.button("Demo 1: Recovered Failure (W_N_0057 R:32 C:23)")
         with col_d2:
-            btn_demo_2 = st.button("🔥 Demo 2: Recovered Failure (W_N_0057 R:18 C:26)")
+            btn_demo_2 = st.button("Demo 2: Recovered Failure (W_N_0057 R:18 C:26)")
         with col_d3:
-            btn_demo_3 = st.button("✅ Demo 3: Confident Pass (W_N_0057 R:0 C:13)")
+            btn_demo_3 = st.button("Demo 3: Confident Pass (W_N_0057 R:0 C:13)")
             
         sel_idx = 3736
         if btn_demo_1: sel_idx = 3736
@@ -621,7 +621,7 @@ elif nav_page == "• Live Die Check":
             live_res = predict_single_die_live(die_data, model_A, model_B)
             
             # Display Visual Pipeline
-            st.markdown("### 🔄 End-to-End Cascade Pipeline Execution")
+            st.markdown("### End-to-End Cascade Pipeline Execution")
             
             p_A_disp = live_res['prob_Model_A']
             p_B_disp = live_res['prob_Model_B']
@@ -670,7 +670,7 @@ elif nav_page == "• Live Die Check":
                 if final_dec_disp == 1 and actual_label_disp == 1:
                     st.markdown(f"""
                     <div class="decision-box-fail">
-                        <h4 style="margin:0; color:#F85149;">🎯 MODEL A MISSED FAILURE SUCCESSFULLY RECOVERED!</h4>
+                        <h4 style="margin:0; color:#F85149;">MODEL A MISSED FAILURE SUCCESSFULLY RECOVERED!</h4>
                         <p style="margin:4px 0 0 0; color:#C9D1D9;">
                             <b>Explanation:</b> {live_res['gate_message']} Model B evaluated 2,000 sub-die block readings and detected strong block-level anomaly (P_B = {p_B_disp:.4f} ≥ 0.5376), correctly flagging actual post-test failure.
                         </p>
@@ -679,14 +679,14 @@ elif nav_page == "• Live Die Check":
                 else:
                     st.markdown(f"""
                     <div class="control-box">
-                        <h4 style="margin:0; color:#58A6FF;">ℹ️ ESCALATED DIE INSPECTION COMPLETED</h4>
+                        <h4 style="margin:0; color:#58A6FF;">ESCALATED DIE INSPECTION COMPLETED</h4>
                         <p style="margin:4px 0 0 0; color:#C9D1D9;"><b>Explanation:</b> {live_res['gate_message']} Final probability resolved to {p_final_disp:.4f} (Decision: {live_res['decision_text']}).</p>
                     </div>
                     """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
                 <div class="decision-box-pass">
-                    <h4 style="margin:0; color:#3FB950;">⚡ FAST PATH BYPASS (88.14% DIE POPULATION)</h4>
+                    <h4 style="margin:0; color:#3FB950;">FAST PATH BYPASS (88.14% DIE POPULATION)</h4>
                     <p style="margin:4px 0 0 0; color:#C9D1D9;">
                         <b>Explanation:</b> {live_res['gate_message']} Model A risk (P_A = {p_A_disp:.4f}) was sufficiently confident outside [0.25, 0.55], allowing immediate yield decision with zero block computation overhead.
                     </p>
@@ -695,10 +695,10 @@ elif nav_page == "• Live Die Check":
                 
             # Explainability decomposition
             st.markdown("---")
-            st.subheader("🔬 Diagnostic Signal Attribution")
+            st.subheader("Diagnostic Signal Attribution")
             p_c1, p_c2, p_c3 = st.columns(3)
             with p_c1:
-                st.markdown("#### ⚡ Parametric Drivers")
+                st.markdown("#### Parametric Drivers")
                 param_data = {
                     'Feature': ['feature_171', 'feature_460', 'feature_109', 'feature_272', 'feature_33'],
                     'Value': [die_data.get(f, 0.0) for f in ['feature_171', 'feature_460', 'feature_109', 'feature_272', 'feature_33']]
@@ -707,7 +707,7 @@ elif nav_page == "• Live Die Check":
                 fig_p.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='#161B22', font=dict(color='#C9D1D9'), margin=dict(l=10, r=10, t=10, b=10))
                 st.plotly_chart(fig_p, use_container_width=True)
             with p_c2:
-                st.markdown("#### 🌐 Spatial Signals")
+                st.markdown("#### Spatial Signals")
                 sp = live_res['spatial_signals']
                 st.markdown(f"""
                 <div class="control-box" style="font-size: 0.85rem; line-height: 1.8;">
@@ -718,7 +718,7 @@ elif nav_page == "• Live Die Check":
                 </div>
                 """, unsafe_allow_html=True)
             with p_c3:
-                st.markdown("#### 🧱 Block Anomaly Signals")
+                st.markdown("#### Block Anomaly Signals")
                 bs = live_res['block_signals']
                 st.markdown(f"""
                 <div class="control-box" style="font-size: 0.85rem; line-height: 1.8;">
@@ -735,7 +735,7 @@ elif nav_page == "• Live Die Check":
 
     # ------------------ TAB B: CSV BATCH PREDICTION ------------------
     with tab_csv:
-        st.markdown("### 📂 Upload CSV for Live Batch Inference")
+        st.markdown("### Upload CSV for Live Batch Inference")
         st.markdown("Upload a CSV containing die rows to run the live cascade.")
         
         uploaded_file = st.file_uploader("Choose a CSV file", type=['csv'])
@@ -746,11 +746,11 @@ elif nav_page == "• Live Die Check":
                 val_schema = validate_csv_schema(user_df)
                 
                 if not val_schema['valid']:
-                    st.error(f"❌ CSV Schema Validation Failed: {len(val_schema['errors'])} error(s)")
+                    st.error(f"[ERROR] CSV Schema Validation Failed: {len(val_schema['errors'])} error(s)")
                     for err in val_schema['errors']:
                         st.markdown(f"- `{err}`")
                 else:
-                    st.success(f"✓ CSV Schema Validated: {val_schema['num_rows']:,} die row(s) loaded.")
+                    st.success(f"[PASS] CSV Schema Validated: {val_schema['num_rows']:,} die row(s) loaded.")
                     
                     if st.button("▶ RUN BATCH PREDICTION"):
                         with st.spinner("Executing live cascade inference..."):
@@ -759,7 +759,7 @@ elif nav_page == "• Live Die Check":
                         summary = batch_res['summary']
                         res_df = batch_res['results_df']
                         
-                        st.markdown("#### 📊 Batch Inference Summary")
+                        st.markdown("#### Batch Inference Summary")
                         k1, k2, k3, k4, k5 = st.columns(5)
                         k1.metric("Total Dies Processed", f"{summary['total_dies']:,}")
                         k2.metric("Predicted Failures", f"{summary['predicted_fails']:,}", f"{summary['predicted_fail_rate_pct']:.2f}% Fail Rate")
@@ -767,12 +767,12 @@ elif nav_page == "• Live Die Check":
                         k4.metric("Escalated to Model B", f"{summary['escalated_dies']:,}", f"{summary['escalation_rate_pct']:.2f}% Escalated")
                         k5.metric("Block Compute Saved", f"{summary['compute_saved_pct']:.2f}%", f"{summary['latency_per_die_ms']:.2f} ms / die")
                         
-                        st.markdown("#### 📋 Inference Results Table")
+                        st.markdown("#### Inference Results Table")
                         st.dataframe(res_df, use_container_width=True, hide_index=True)
                         
                         csv_data = res_df.to_csv(index=False).encode('utf-8')
                         st.download_button(
-                            "📥 Download Batch Prediction CSV",
+                            "Download Batch Prediction CSV",
                             data=csv_data,
                             file_name="sandisk_cascade_live_predictions.csv",
                             mime="text/csv"
@@ -784,7 +784,7 @@ elif nav_page == "• Live Die Check":
 
     # ------------------ TAB C: MANUAL ADVANCED INPUT ------------------
     with tab_manual:
-        st.markdown("### ⚙️ Manual Parameter Input")
+        st.markdown("### Manual Parameter Input")
         st.markdown("Enter custom coordinate and parameter values to test edge cases.")
         
         m_c1, m_c2, m_c3 = st.columns(3)
@@ -832,14 +832,14 @@ elif nav_page == "• Live Die Check":
 # PAGE 4: MODEL LAB (UPGRADED VISUAL ANALYTICS)
 # ====================================================
 elif nav_page == "• Model Lab":
-    st.subheader("🧪 Model Lab: Architectural Analytics & Visual Profiling")
+    st.subheader("Model Lab: Architectural Analytics & Visual Profiling")
     st.markdown("Deep visual profiling of each modeling approach evaluated on the canonical 32 validation wafers (27,972 holdout dies).")
     
     # 3 Separate Architecture Tabs
     tab_mA, tab_mB, tab_cas = st.tabs([
-        "⚡ 1. Model A — Standalone Screening",
-        "🧱 2. Model B — Standalone Multi-Resolution",
-        "🏆 3. Gate Cascade — Proposed Production System"
+        "1. Model A — Standalone Screening",
+        "2. Model B — Standalone Multi-Resolution",
+        "3. Gate Cascade — Proposed Production System"
     ])
     
     m_a_data = dict(auth_metrics['model_A']) if auth_metrics else {'f1': 0.4907, 'auc_pr': 0.4498, 'precision': 0.8947, 'recall': 0.3381, 'roc_auc': 0.7934, 'confusion_matrix': {'tp': 357, 'fn': 699, 'fp': 42, 'tn': 26874}}
@@ -888,7 +888,7 @@ elif nav_page == "• Model Lab":
         with c_d2:
             st.markdown("""
             <div class="decision-box-fail" style="height: 260px; display: flex; flex-direction: column; justify-content: center;">
-                <h4 style="color: #F85149; margin-top: 0;">⚠️ MODEL A BLIND SPOT (699 MISSED FAILURES)</h4>
+                <h4 style="color: #F85149; margin-top: 0;">MODEL A BLIND SPOT (699 MISSED FAILURES)</h4>
                 <p style="color: #C9D1D9; font-size: 0.88rem; line-height: 1.7; margin-bottom: 0;">
                     • Model A achieves high precision (<b>89.47%</b>) by only flagging blatant parametric outliers.<br>
                     • However, <b>66.19% of post-test failures (699 / 1,056)</b> pass unnoticed because localized defect signatures reside entirely inside the 2,000 sub-die sequence readings.<br>
@@ -930,7 +930,7 @@ elif nav_page == "• Model Lab":
         with c_db2:
             st.markdown("""
             <div class="control-box" style="height: 260px; display: flex; flex-direction: column; justify-content: center;">
-                <h4 style="color: #D29922; margin-top: 0;">⚖️ MODEL B HONEST TRADE-OFF ANALYSIS</h4>
+                <h4 style="color: #D29922; margin-top: 0;">MODEL B HONEST TRADE-OFF ANALYSIS</h4>
                 <p style="color: #C9D1D9; font-size: 0.88rem; line-height: 1.7; margin-bottom: 0;">
                     • <b>Where Model B Wins:</b> Captures subtle anomalies across 2,000 block readings, boosting <b>AUC-PR to 0.4659</b> and <b>ROC-AUC to 0.8336</b>.<br>
                     • <b>Where Model B Struggles Standalone:</b> Block noise across 26,916 passing dies introduces <b>+88 new false alarms (130 FP vs 42 FP)</b>, pulling precision down to 73.74% and F1 down to 0.4707.<br>
@@ -991,7 +991,7 @@ elif nav_page == "• Model Lab":
         with c_dcas2:
             st.markdown("""
             <div class="decision-box-pass" style="height: 260px; display: flex; flex-direction: column; justify-content: center;">
-                <h4 style="color: #3FB950; margin-top: 0;">🏆 WHY THE CASCADE WINS (PRODUCTION MATHEMATICS)</h4>
+                <h4 style="color: #3FB950; margin-top: 0;">WHY THE CASCADE WINS (PRODUCTION MATHEMATICS)</h4>
                 <div style="font-family: monospace; font-size: 0.95rem; color: #58A6FF; margin-bottom: 8px;">
                     Net TP Gain (+32) = Gross Recovered (37) - TPs Lost (5)
                 </div>
@@ -1007,28 +1007,28 @@ elif nav_page == "• Model Lab":
 # PAGE 5: MODEL COMPARISON (UPGRADED VISUAL BENCHMARK)
 # ====================================================
 elif nav_page == "• Model Comparison":
-    st.subheader("⚖️ Head-to-Head Architectural Visual Comparison")
+    st.subheader("Head-to-Head Architectural Visual Comparison")
     st.markdown("Visual side-by-side benchmarking of **Model A** vs **Model B** vs **Gate Cascade** on 27,972 holdout dies.")
     
     # 1. Plain-English Judge Framing
     st.markdown("""
     <div class="control-box" style="border: 1px solid #30363D;">
-        <h4 style="margin-top: 0; color: #58A6FF;">💡 Architectural Summary for Judges</h4>
+        <h4 style="margin-top: 0; color: #58A6FF;">Architectural Summary for Judges</h4>
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; font-size: 0.85rem; line-height: 1.6;">
             <div style="background-color: #0D1117; padding: 12px; border-radius: 6px; border: 1px solid #30363D;">
-                <b style="color: #8B949E;">⚡ MODEL A (Fast Baseline)</b><br>
+                <b style="color: #8B949E;">MODEL A (Fast Baseline)</b><br>
                 500 parametric + 6 spatial features.<br>
                 <b>Pros:</b> Fast screening, 89.47% Precision.<br>
                 <b>Cons:</b> Blind to sub-die block defects (misses 699 fails).
             </div>
             <div style="background-color: #0D1117; padding: 12px; border-radius: 6px; border: 1px solid #30363D;">
-                <b style="color: #D29922;">🧱 MODEL B (100% High-Res)</b><br>
+                <b style="color: #D29922;">MODEL B (100% High-Res)</b><br>
                 Adds 20 block features across 100% dies.<br>
                 <b>Pros:</b> Higher ranking power (AUC-PR: 0.4659).<br>
                 <b>Cons:</b> High compute; +88 false alarms on passing dies.
             </div>
             <div style="background-color: #0D1117; padding: 12px; border-radius: 6px; border: 1px solid #2EA043;">
-                <b style="color: #3FB950;">🏆 GATE CASCADE (Proposed)</b><br>
+                <b style="color: #3FB950;">GATE CASCADE (Proposed)</b><br>
                 Escalates only uncertain dies [0.25, 0.55].<br>
                 <b>Pros:</b> Highest F1 (0.5072) & AUC-PR (0.4677), recovers 37 missed defects, saves 88.14% compute!
             </div>
@@ -1037,7 +1037,7 @@ elif nav_page == "• Model Comparison":
     """, unsafe_allow_html=True)
     
     # A. Performance Comparison (Grouped Bar Chart)
-    st.markdown("### 📊 Performance Metric Comparison Across All 6 Dimensions")
+    st.markdown("### Performance Metric Comparison Across All 6 Dimensions")
     
     metrics_comp_df = pd.DataFrame({
         'Metric': ['Fail F1', 'AUC-PR', 'ROC-AUC', 'Precision', 'Recall', 'Accuracy'],
@@ -1088,7 +1088,7 @@ elif nav_page == "• Model Comparison":
     st.markdown("---")
     
     # B. Side-by-Side Confusion Matrix Heatmaps
-    st.markdown("### 🔲 Confusion Matrix Heatmaps (Side-by-Side)")
+    st.markdown("### Confusion Matrix Heatmaps (Side-by-Side)")
     st.markdown("Direct visual comparison of detection counts and error populations across 27,972 holdout dies:")
     
     c_hm1, c_hm2, c_hm3 = st.columns(3)
@@ -1102,7 +1102,7 @@ elif nav_page == "• Model Comparison":
     st.markdown("---")
     
     # C. Error Population Comparison
-    st.markdown("### 🎯 Error Population Comparison (Detections vs Missed Defects vs False Alarms)")
+    st.markdown("### Error Population Comparison (Detections vs Missed Defects vs False Alarms)")
     
     err_comp_df = pd.DataFrame({
         'Category': ['True Positives (TP)', 'Missed Failures (FN)', 'False Alarms (FP)'],
@@ -1132,7 +1132,7 @@ elif nav_page == "• Model Comparison":
     st.markdown("---")
     
     # D. A -> B Delta Visualization
-    st.markdown("### 🔄 A → B Risk Probability Shift Distribution (ΔP = P_B - P_A)")
+    st.markdown("### A → B Risk Probability Shift Distribution (ΔP = P_B - P_A)")
     st.markdown("Demonstrating how block-level information specifically modulates die risk probability:")
     
     if diag_df is not None:
@@ -1183,13 +1183,13 @@ elif nav_page == "• Model Comparison":
             
     # E. Cascade Specific Impact & Decision Flow
     st.markdown("---")
-    st.markdown("### 🏆 Production Impact & Decision Flow Summary")
+    st.markdown("### Production Impact & Decision Flow Summary")
     
     col_g1, col_g2 = st.columns([1.1, 0.9])
     with col_g1:
         st.markdown("""
         <div class="control-box">
-            <h4 style="margin-top: 0; color: #3FB950;">⚡ Quantified Cascade Production Impact</h4>
+            <h4 style="margin-top: 0; color: #3FB950;">Quantified Cascade Production Impact</h4>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.88rem; line-height: 1.8;">
                 <div>• <b>Fail F1 Improvement:</b> <span class="text-green">+3.35% (0.4907 → 0.5072)</span></div>
                 <div>• <b>AUC-PR Boost:</b> <span class="text-green">+3.99% (0.4498 → 0.4677)</span></div>
@@ -1203,7 +1203,7 @@ elif nav_page == "• Model Comparison":
     with col_g2:
         st.markdown("""
         <div class="decision-box-pass">
-            <h4 style="margin-top: 0; color: #58A6FF;">🔄 Decision Flow Architecture</h4>
+            <h4 style="margin-top: 0; color: #58A6FF;">Decision Flow Architecture</h4>
             <div style="font-family: monospace; font-size: 0.82rem; line-height: 1.6; color: #C9D1D9;">
                 <b>100% Dies (27,972)</b><br>
                 &nbsp;&nbsp;└── <b>Model A Screening</b><br>
@@ -1215,7 +1215,7 @@ elif nav_page == "• Model Comparison":
         """, unsafe_allow_html=True)
         
     st.markdown("---")
-    st.subheader("📋 Comprehensive Performance Data Table")
+    st.subheader("Comprehensive Performance Data Table")
     if bench_df is not None:
         st.dataframe(bench_df, use_container_width=True, hide_index=True)
 
@@ -1223,14 +1223,14 @@ elif nav_page == "• Model Comparison":
 # PAGE 6: CASCADE ANALYTICS
 # ====================================================
 elif nav_page == "• Cascade Analytics":
-    st.subheader("🎯 Cascade Strategy Analytics & Gating Optimization")
+    st.subheader("Cascade Strategy Analytics & Gating Optimization")
     st.markdown("""
     **Why Selective Inspection?** Evaluating expensive sub-die readings across 100% of dies creates high computational latency and introduces false alarm noise.  
     **Selective Uncertainty Gating** restricts fine-resolution inspection strictly to dies where Model A is ambiguous, maximizing overall system F1 and AUC-PR while saving >88% of block compute.
     """)
     
     if bench_df is not None:
-        st.markdown("### 📊 Comprehensive Architecture Benchmark Table")
+        st.markdown("### Comprehensive Architecture Benchmark Table")
         st.dataframe(bench_df, use_container_width=True, hide_index=True)
         
     st.markdown("---")
@@ -1238,7 +1238,7 @@ elif nav_page == "• Cascade Analytics":
     c_chart1, c_chart2 = st.columns(2)
     
     with c_chart1:
-        st.subheader("📈 F1 vs Escalation Rate (%)")
+        st.subheader("F1 vs Escalation Rate (%)")
         if gate_sweep_df is not None:
             fig_f1 = px.line(
                 gate_sweep_df,
@@ -1261,7 +1261,7 @@ elif nav_page == "• Cascade Analytics":
             st.plotly_chart(fig_f1, use_container_width=True)
             
     with c_chart2:
-        st.subheader("📉 Compute Saved (%) vs Precision")
+        st.subheader("Compute Saved (%) vs Precision")
         if gate_sweep_df is not None:
             fig_prec = px.bar(
                 gate_sweep_df,
@@ -1284,7 +1284,7 @@ elif nav_page == "• Cascade Analytics":
             
     st.markdown("""
     <div class="control-box">
-        <h4 style="margin-top: 0; color: #3FB950;">🏆 Production Operating Recommendation: Gate B [0.25, 0.55]</h4>
+        <h4 style="margin-top: 0; color: #3FB950;">Production Operating Recommendation: Gate B [0.25, 0.55]</h4>
         <p style="margin-bottom: 0;">
             <b>Gate B ([0.25, 0.55])</b> achieves the optimal operating balance: <b>Fail F1 = 0.5072</b>, <b>AUC-PR = 0.4677</b>, recovering <b>37 missed failures</b> (+32 net TP gain) while <b>88.14% of dies bypass block processing</b>.  
             For lines requiring maximum precision with minimal inspection overhead, <b>Gate C ([0.30, 0.60])</b> provides <b>87.07% Precision</b> at <b>94.19% Compute Savings</b>.
@@ -1296,7 +1296,7 @@ elif nav_page == "• Cascade Analytics":
 # PAGE 7: MODEL PERFORMANCE & LIVE FULL EVALUATION
 # ====================================================
 elif nav_page == "• Model Performance":
-    st.subheader("📊 Authoritative Model Performance & Live Full Evaluation")
+    st.subheader("Authoritative Model Performance & Live Full Evaluation")
     st.markdown("Benchmarked strictly on the **canonical 32 validation wafers (27,972 holdout dies)** with zero leakage.")
     
     # Prominent Live Full Evaluation Button
@@ -1309,7 +1309,7 @@ elif nav_page == "• Model Performance":
     </div>
     """, unsafe_allow_html=True)
     
-    if st.button("🚀 ▶ RUN FULL EVALUATION (27,972 Canonical Dies)", type="primary"):
+    if st.button("▶ RUN FULL EVALUATION (27,972 Canonical Dies)", type="primary"):
         with st.spinner("Executing dynamic model evaluation across 27,972 holdout dies..."):
             runtime_res = execute_full_live_evaluation(model_A, model_B, diag_df, auth_metrics)
             
@@ -1323,10 +1323,10 @@ elif nav_page == "• Model Performance":
         rt = st.session_state['runtime_eval_result']
         integ = rt.get('integrity_checks', {})
         
-        st.success(f"**{integ.get('status_message', '✓ LIVE EVALUATION COMPLETED')}** (Evaluated at {rt['metadata']['evaluated_at']})")
+        st.success(f"**{integ.get('status_message', 'LIVE EVALUATION COMPLETED')}** (Evaluated at {rt['metadata']['evaluated_at']})")
         
         # Integrity Panel
-        st.markdown("### 🛡️ Evaluation Integrity & Reproducibility Verification")
+        st.markdown("### Evaluation Integrity & Reproducibility Verification")
         c_i1, c_i2, c_i3, c_i4 = st.columns(4)
         c_i1.metric("Canonical Split Check", integ.get('canonical_split', 'PASS'), "128 Train / 32 Val")
         c_i2.metric("Metric Delta vs Auth", f"{integ.get('delta_f1_vs_authoritative', 0.0):.6f}", "Exact 0.000000 Diff")
@@ -1334,7 +1334,7 @@ elif nav_page == "• Model Performance":
         c_i4.metric("Total Eval Runtime", f"{rt['metadata']['runtimes']['total_eval_time_s']:.2f} s", f"Model A: {rt['metadata']['runtimes']['model_A_time_s']:.2f}s")
         
         # Dynamic Evaluation Table
-        st.markdown("### 📋 Freshly Computed Runtime Metrics Table")
+        st.markdown("### Freshly Computed Runtime Metrics Table")
         rt_rows = [
             {
                 'Architecture': 'Model A Baseline',
@@ -1388,7 +1388,7 @@ elif nav_page == "• Model Performance":
     c_m1, c_m2 = st.columns(2)
     
     with c_m1:
-        st.markdown("### 🏆 Core Metric Comparison")
+        st.markdown("### Core Metric Comparison")
         comp_data = {
             'Architecture': ['Model A Baseline', 'Model B (100% Inspection)', 'Cascade Gate B [0.25, 0.55]', 'Cascade Gate C [0.30, 0.60]'],
             'Fail F1': [0.4907, 0.4707, 0.5072, 0.5064],
@@ -1414,7 +1414,7 @@ elif nav_page == "• Model Performance":
         st.plotly_chart(fig_bar, use_container_width=True)
         
     with c_m2:
-        st.markdown("### 📉 Probability Calibration & Reliability")
+        st.markdown("### Probability Calibration & Reliability")
         calib_img_path = os.path.join(VIS_DIR, 'probability_calibration.png')
         if os.path.exists(calib_img_path):
             st.image(calib_img_path, caption="Reliability Calibration Curves: Cascade Gate B achieves the lowest Brier score (0.04175 vs 0.04561).", use_container_width=True)
@@ -1427,7 +1427,7 @@ elif nav_page == "• Model Performance":
 
     st.markdown("""
     <div class="control-box">
-        <h4 style="margin-top: 0; color: #58A6FF;">📋 Authoritative Methodology Note</h4>
+        <h4 style="margin-top: 0; color: #58A6FF;">Authoritative Methodology Note</h4>
         <ul style="margin-bottom: 0; font-size: 0.85rem; line-height: 1.8;">
             <li><b>Eligible Dies Only:</b> Strictly filtered to pre-test passing dies (<code>old_label == 0</code>), total 154,037 dies across 160 wafers.</li>
             <li><b>Canonical Split:</b> 128 train wafers (126,065 dies), 32 holdout validation wafers (27,972 dies). <b>Zero wafer overlap (0.0%).</b></li>
@@ -1441,7 +1441,7 @@ elif nav_page == "• Model Performance":
 # PAGE 8: ERROR ANALYSIS
 # ====================================================
 elif nav_page == "• Error Analysis":
-    st.subheader("🔍 Error Analysis & Confusion Breakdown")
+    st.subheader("Error Analysis & Confusion Breakdown")
     st.markdown("Detailed breakdown of classification transitions, false-negative recovery, and false alarms under **Cascade Gate B**.")
     
     g_b = auth_metrics['cascade_gate_B'] if auth_metrics else {}
@@ -1458,7 +1458,7 @@ elif nav_page == "• Error Analysis":
     col_t1, col_t2 = st.columns([1.2, 1.0])
     
     with col_t1:
-        st.subheader("🔄 Gate B Decision Transition Breakdown")
+        st.subheader("Gate B Decision Transition Breakdown")
         st.markdown(f"""
         <div class="control-box">
             <h4 style="margin-top: 0; color: #58A6FF;">Mathematical Resolution of Recovered Dies</h4>
@@ -1472,7 +1472,7 @@ elif nav_page == "• Error Analysis":
         """, unsafe_allow_html=True)
         
     with col_t2:
-        st.subheader("📊 Recovery Equation")
+        st.subheader("Recovery Equation")
         st.markdown("""
         <div class="control-box" style="text-align: center; padding: 24px;">
             <div style="font-family: monospace; font-size: 1.1rem; color: #58A6FF; margin-bottom: 12px;">
@@ -1489,7 +1489,7 @@ elif nav_page == "• Error Analysis":
         
     if diag_df is not None:
         st.markdown("---")
-        st.subheader("🔬 Interactive Error Population Drill-Down")
+        st.subheader("Interactive Error Population Drill-Down")
         
         err_group = st.selectbox(
             "Select Diagnostic Group to Inspect",
@@ -1520,7 +1520,7 @@ elif nav_page == "• Error Analysis":
 # PAGE 9: SYSTEM STATUS
 # ====================================================
 elif nav_page == "• System Status":
-    st.subheader("🛡️ Project Integrity & Evaluation Artifact Verification")
+    st.subheader("Project Integrity & Evaluation Artifact Verification")
     st.markdown("Automated integrity verification of all datasets, models, splits, and audit reports.")
     
     i1, i2, i3 = st.columns(3)
@@ -1528,7 +1528,7 @@ elif nav_page == "• System Status":
         st.markdown("""
         <div class="metric-card">
             <div class="metric-title">Canonical Split Integrity</div>
-            <div class="metric-value text-green">PASS ✓</div>
+            <div class="metric-value text-green">PASS</div>
             <div class="metric-subtitle text-muted">128 Train / 32 Val Wafers (0 Overlap)</div>
         </div>
         """, unsafe_allow_html=True)
@@ -1536,7 +1536,7 @@ elif nav_page == "• System Status":
         st.markdown("""
         <div class="metric-card">
             <div class="metric-title">Zero-Leakage Audit</div>
-            <div class="metric-value text-green">PASS ✓</div>
+            <div class="metric-value text-green">PASS</div>
             <div class="metric-subtitle text-muted">Zero feature / label contamination</div>
         </div>
         """, unsafe_allow_html=True)
@@ -1544,14 +1544,14 @@ elif nav_page == "• System Status":
         st.markdown("""
         <div class="metric-card">
             <div class="metric-title">Unit Test Suite</div>
-            <div class="metric-value text-green">PASS ✓</div>
+            <div class="metric-value text-green">PASS</div>
             <div class="metric-subtitle text-muted">All 14 test suites passing (OK)</div>
         </div>
         """, unsafe_allow_html=True)
         
     st.markdown("---")
     
-    st.subheader("📁 Production Artifact Registry")
+    st.subheader("Production Artifact Registry")
     
     artifacts = [
         ("Authoritative Clean Metrics", "results/AUTHORITATIVE_CLEAN_METRICS.json", os.path.exists(AUTH_METRICS_PATH)),
@@ -1571,7 +1571,7 @@ elif nav_page == "• System Status":
         {
             "Artifact Name": name,
             "Path": path,
-            "Status": "AVAILABLE ✓" if exists else "MISSING ✗"
+            "Status": "AVAILABLE" if exists else "MISSING"
         }
         for name, path, exists in artifacts
     ])
@@ -1580,7 +1580,7 @@ elif nav_page == "• System Status":
     
     st.markdown("""
     <div class="control-box" style="margin-top: 20px;">
-        <h4 style="margin-top: 0; color: #8B949E;">ℹ️ System Scope Note</h4>
+        <h4 style="margin-top: 0; color: #8B949E;">System Scope Note</h4>
         <p style="margin-bottom: 0; font-size: 0.82rem; color: #8B949E;">
             This dashboard displays offline holdout evaluation metrics and diagnostic artifacts verified across the canonical 32 validation wafers. It reflects model benchmarks under strict competition evaluation protocols rather than real-time factory telemetry.
         </p>

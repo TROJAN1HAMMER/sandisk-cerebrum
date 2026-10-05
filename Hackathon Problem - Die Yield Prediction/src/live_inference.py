@@ -465,7 +465,7 @@ def execute_full_live_evaluation(
             'prediction_mismatch_count': mismatches,
             'delta_f1_vs_authoritative': float(np.round(delta_f1, 6)),
             'delta_auc_vs_authoritative': float(np.round(delta_auc, 6)),
-            'status_message': "✓ LIVE EVALUATION REPRODUCES AUTHORITATIVE BENCHMARK" if reproducible else "⚠ MISMATCH DETECTED"
+            'status_message': "LIVE EVALUATION REPRODUCES AUTHORITATIVE BENCHMARK" if reproducible else "MISMATCH DETECTED"
         }
     runtime_dict['integrity_checks'] = integrity_checks
     

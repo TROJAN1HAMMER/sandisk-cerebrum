@@ -1,4 +1,4 @@
-# ⚡ SanDisk Cerebrum: Selective Multi-Resolution Die Yield Intelligence
+# SanDisk Cerebrum: Selective Multi-Resolution Die Yield Intelligence
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit](https://img.shields.io/badge/dashboard-Streamlit-FF4B4B.svg)](https://streamlit.io/)
@@ -11,7 +11,7 @@
 
 ---
 
-## 📌 Executive Summary
+## Executive Summary
 
 Modern semiconductor fabrication produces tens of thousands of dies per wafer. While coarse-grained parametric electrical testing is cheap and high-throughput, subtle localized defects often hide within microscopic sub-die block structures (2,000 sequence readings per die). Conversely, parsing sub-die sequences across 100% of manufactured dies introduces massive computational latency and false alarm noise on confident passes.
 
@@ -22,7 +22,7 @@ Modern semiconductor fabrication produces tens of thousands of dies per wafer. W
 
 ---
 
-## 🏆 Benchmark & Authoritative Results
+## Benchmark & Authoritative Results
 
 Evaluated on the **Canonical 32 Holdout Validation Wafers (27,972 dies, 0.0% train overlap)**:
 
@@ -43,7 +43,7 @@ Evaluated on the **Canonical 32 Holdout Validation Wafers (27,972 dies, 0.0% tra
 
 ---
 
-## ⚙️ System Architecture
+## System Architecture
 
 ```
                                     [ 100% OF MANUFACTURED DIES (27,972) ]
@@ -82,7 +82,7 @@ Evaluated on the **Canonical 32 Holdout Validation Wafers (27,972 dies, 0.0% tra
 
 ---
 
-## 🔬 Mathematical Resolution of Recovered Dies
+## Mathematical Resolution of Recovered Dies
 
 Under **Cascade Gate B**, the confusion matrix decomposes as:
 $$\text{Net TP Gain} = \text{Gross FNs Recovered} - \text{TPs Lost in Gate}$$
@@ -95,7 +95,7 @@ $$+32 = 37 - 5$$
 
 ---
 
-## 🖥️ Enterprise Control Room Dashboard
+## Enterprise Control Room Dashboard
 
 The project includes a 9-page Streamlit application:
 
@@ -111,7 +111,7 @@ The project includes a 9-page Streamlit application:
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 sandisk-cerebrum/
@@ -168,7 +168,7 @@ sandisk-cerebrum/
 
 ---
 
-## 🚀 Quickstart & Installation
+## Quickstart & Installation
 
 ### 1. Clone & Set Up Environment
 ```bash
@@ -195,7 +195,7 @@ Open **`http://localhost:8501`** in your browser.
 
 ---
 
-## 🛡️ Leakage-Safe Audit Verification
+## Leakage-Safe Audit Verification
 
 All experimental partitions strictly adhere to the canonical wafer split:
 * **Canonical Train Set:** 128 wafers ($126,065$ dies, $4.33\%$ failure rate).
@@ -206,7 +206,7 @@ All experimental partitions strictly adhere to the canonical wafer split:
 
 ---
 
-## 👥 Author & Attribution
+## Author & Attribution
 
 * **Project:** SanDisk Cerebrum Die Yield Intelligence
 * **Developer:** Balaachuanu (`TROJAN1HAMMER`)
