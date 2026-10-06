@@ -40,3 +40,21 @@ results/test_cli_output.csv
 .tempmediaStorage/
 .system_generated/
 scratch/
+
+# Node / Frontend dependencies & build outputs
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.vite/
+**/.vite/
+package-lock.json
+**/package-lock.json
+
+# Binary data caches and generated arrays
+backend/data/
+**/backend/data/
+*.npz
+**/cached_block_features.npz
+
+

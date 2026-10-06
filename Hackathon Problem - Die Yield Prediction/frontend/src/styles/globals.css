@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-canvas: #080B10;
+    --bg-surface: #0E131F;
+    --bg-card: #151D2C;
+    --bg-elevated: #1C2638;
+    --border-subtle: #32435E;
+    --border-light: #475569;
+  }
+
+  body {
+    background-color: #080B10;
+    color: #F1F5F9;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  /* Custom scrollbars for data-dense engineering interfaces */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #080B10;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #212B3D;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #32435E;
+  }
+}
+
+/* Tabular numbers for high precision semiconductor metrics */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

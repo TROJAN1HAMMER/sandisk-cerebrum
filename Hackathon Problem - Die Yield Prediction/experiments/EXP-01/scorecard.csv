@@ -1,0 +1,25 @@
+category,metric,baseline,experiment,absolute_delta,relative_delta,direction,status
+Model_A_Classification,Accuracy,0.9735,0.9733,-0.0002,-0.02,HIGHER_IS_BETTER,DEGRADED
+Model_A_Classification,Balanced Accuracy,0.6683,0.6645,-0.0038,-0.57,HIGHER_IS_BETTER,DEGRADED
+Model_A_Classification,Precision,0.8947,0.8972,0.0025,0.28,HIGHER_IS_BETTER,IMPROVED
+Model_A_Classification,Recall,0.3381,0.3305,-0.0076,-2.25,HIGHER_IS_BETTER,DEGRADED
+Model_A_Classification,F1 Score,0.4907,0.483,-0.0077,-1.57,HIGHER_IS_BETTER,DEGRADED
+Model_A_Classification,F2 Score,0.3861,0.3783,-0.0078,-2.02,HIGHER_IS_BETTER,DEGRADED
+Model_A_Classification,MCC,0.5409,0.5355,-0.0054,-1.0,HIGHER_IS_BETTER,DEGRADED
+Model_A_Ranking,ROC-AUC,0.7934,0.8016,0.0082,1.03,HIGHER_IS_BETTER,IMPROVED
+Model_A_Ranking,PR-AUC,0.4497,0.4609,0.0112,2.49,HIGHER_IS_BETTER,IMPROVED
+Model_A_Calibration,Brier Score,0.04561,0.04475,-0.00086,-1.89,LOWER_IS_BETTER,IMPROVED
+Model_A_Calibration,ECE,0.13116,0.12935,-0.00181,-1.38,LOWER_IS_BETTER,IMPROVED
+Model_A_Operational,True Positives (TP),357.0,349.0,-8.0,-2.24,HIGHER_IS_BETTER,DEGRADED
+Model_A_Operational,False Negatives (FN),699.0,707.0,8.0,1.14,LOWER_IS_BETTER,DEGRADED
+Model_A_Operational,False Positives (FP),42.0,40.0,-2.0,-4.76,LOWER_IS_BETTER,IMPROVED
+Cascade_Classification,Cascade F1 Score,0.5072,0.514,0.0068,1.34,HIGHER_IS_BETTER,IMPROVED
+Cascade_Classification,Cascade Recall,0.3684,0.3731,0.0047,1.28,HIGHER_IS_BETTER,IMPROVED
+Cascade_Classification,Cascade Precision,0.8138,0.826,0.0122,1.5,HIGHER_IS_BETTER,IMPROVED
+Cascade_Ranking,Cascade PR-AUC,0.4675,0.4755,0.008,1.71,HIGHER_IS_BETTER,IMPROVED
+Cascade_Operational,Cascade TP,389.0,394.0,5.0,1.29,HIGHER_IS_BETTER,IMPROVED
+Cascade_Operational,Cascade FP,89.0,83.0,-6.0,-6.74,LOWER_IS_BETTER,IMPROVED
+Cascade_Operational,Escalation Rate %,11.84,11.26,-0.58,-4.9,LOWER_IS_BETTER,IMPROVED
+Wafer_Robustness,Mean Wafer Recall,0.3259,0.3169,-0.009,-2.77,HIGHER_IS_BETTER,DEGRADED
+Wafer_Robustness,Median Wafer Recall,0.3404,0.3333,-0.007,-2.07,HIGHER_IS_BETTER,DEGRADED
+Wafer_Robustness,Worst Wafer Recall,0.0,0.0,0.0,,HIGHER_IS_BETTER,UNCHANGED

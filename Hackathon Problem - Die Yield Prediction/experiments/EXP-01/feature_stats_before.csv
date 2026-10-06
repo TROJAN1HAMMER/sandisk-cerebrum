@@ -1,0 +1,9 @@
+dataset_split,feature,count,unique_values,mean,std,min,max,non_zero_count,non_zero_pct
+train_before,density_3x3,126065,1,0.0,0.0,0.0,0.0,0,0.0
+train_before,density_5x5,126065,1,0.0,0.0,0.0,0.0,0,0.0
+train_before,radial_dist,126065,11883,0.639228,0.227056,0.0,1.0,126055,99.9921
+train_before,edge_dist,126065,435,0.380134,0.215477,0.0,1.0,123570,98.0209
+val_before,density_3x3,27972,1,0.0,0.0,0.0,0.0,0,0.0
+val_before,density_5x5,27972,1,0.0,0.0,0.0,0.0,0,0.0
+val_before,radial_dist,27972,3782,0.635531,0.226587,0.0,1.0,27967,99.9821
+val_before,edge_dist,27972,207,0.375542,0.213672,0.0,1.0,27362,97.8192

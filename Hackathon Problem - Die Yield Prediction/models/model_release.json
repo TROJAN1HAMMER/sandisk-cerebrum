@@ -1,0 +1,125 @@
+{
+  "model_name": "SanDisk Cerebrum Die Yield Intelligence",
+  "model_version": "B2",
+  "model_status": "FINAL VALIDATED CANDIDATE",
+  "model_family": "LightGBM selective multi-resolution cascade",
+  "release_timestamp": "2026-10-06T22:45:00Z",
+  "active_configuration": {
+    "model_A": {
+      "version": "EXP-01 spatial-restored LightGBM",
+      "threshold": 0.5100,
+      "feature_count": 506
+    },
+    "model_B": {
+      "version": "B2 Enhanced Model B (Frozen Candidate)",
+      "threshold": 0.5376,
+      "feature_count": 536,
+      "active_block_features": 30,
+      "engineered_block_candidates": 10,
+      "restored_spatial_features": 2
+    },
+    "cascade_gate": {
+      "name": "Policy B Preferred",
+      "lower": 0.295,
+      "upper": 0.550,
+      "historical_baseline_lower": 0.25,
+      "historical_baseline_upper": 0.55
+    },
+    "cnn_auxiliary": {
+      "status": "Diagnostic and Attribution Only (Not concatenated)",
+      "model": "cnn_1d_block_model.pt"
+    }
+  },
+  "evaluations": {
+    "final_independent_validation": {
+      "population": "Independent Ground-Truth Test Set (input/test.csv)",
+      "wafers_count": 40,
+      "dies_count": 32598,
+      "actual_defects": 1380,
+      "defect_rate_pct": 4.2334,
+      "cascade_metrics": {
+        "f1": 0.5177,
+        "f2": 0.4190,
+        "mcc": 0.5517,
+        "pr_auc": 0.4808,
+        "roc_auc": 0.8078,
+        "precision": 0.8522,
+        "recall": 0.3717,
+        "accuracy": 0.9707,
+        "balanced_accuracy": 0.6844,
+        "tp": 513,
+        "fn": 867,
+        "fp": 89,
+        "tn": 31129,
+        "escalation_rate_pct": 6.22,
+        "compute_saved_pct": 93.78
+      },
+      "model_A_alone": {
+        "f1": 0.5005,
+        "f2": 0.3939,
+        "precision": 0.9119,
+        "recall": 0.3449,
+        "tp": 476,
+        "fn": 904,
+        "fp": 46
+      },
+      "rescue_gain": {
+        "net_tp_gain": 37,
+        "fn_reduction": 37,
+        "fn_rescued": 41,
+        "fn_sent": 176,
+        "rescue_rate_pct": 23.30,
+        "additional_fp": 43
+      },
+      "bootstrap_95_ci": {
+        "f1": [0.4948, 0.5369],
+        "f2": [0.3995, 0.4403],
+        "mcc": [0.5260, 0.5701],
+        "pr_auc": [0.4465, 0.5089]
+      }
+    },
+    "confirmed_canonical_holdout": {
+      "population": "Canonical 32 Holdout Wafers (val_die_diagnostics.csv)",
+      "wafers_count": 32,
+      "dies_count": 27972,
+      "actual_defects": 1056,
+      "defect_rate_pct": 3.7752,
+      "cascade_metrics": {
+        "f1": 0.5254,
+        "f2": 0.4213,
+        "mcc": 0.5674,
+        "pr_auc": 0.4777,
+        "roc_auc": 0.7986,
+        "precision": 0.8932,
+        "recall": 0.3722,
+        "tp": 393,
+        "fn": 663,
+        "fp": 47,
+        "tn": 26869,
+        "escalation_rate_pct": 5.98,
+        "compute_saved_pct": 94.02
+      }
+    },
+    "historical_production_baseline": {
+      "population": "Canonical 32 Holdout Wafers (B0 Reference)",
+      "wafers_count": 32,
+      "dies_count": 27972,
+      "actual_defects": 1056,
+      "cascade_metrics": {
+        "f1": 0.5072,
+        "f2": 0.4137,
+        "mcc": 0.5369,
+        "pr_auc": 0.4677,
+        "roc_auc": 0.7990,
+        "precision": 0.8138,
+        "recall": 0.3684,
+        "tp": 389,
+        "fn": 667,
+        "fp": 89,
+        "tn": 26827,
+        "escalation_rate_pct": 11.86,
+        "compute_saved_pct": 88.14
+      }
+    }
+  }
+}

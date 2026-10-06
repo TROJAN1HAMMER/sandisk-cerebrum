@@ -1,0 +1,22 @@
+{
+  "model": "Model_A_EXP01",
+  "threshold": 0.51,
+  "accuracy": 0.9733,
+  "balanced_accuracy": 0.6645,
+  "precision": 0.8972,
+  "recall": 0.3305,
+  "specificity": 0.9985,
+  "fpr": 0.0015,
+  "fnr": 0.6695,
+  "f1": 0.483,
+  "f2": 0.3783,
+  "mcc": 0.5355,
+  "roc_auc": 0.8016,
+  "pr_auc": 0.4609,
+  "brier": 0.04475,
+  "ece": 0.12935,
+  "tp": 349,
+  "fn": 707,
+  "fp": 40,
+  "tn": 26876
+}

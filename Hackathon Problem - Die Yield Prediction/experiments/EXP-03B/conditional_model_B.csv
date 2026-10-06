@@ -1,0 +1,7 @@
+policy,variant,escalated_population,actual_defects_in_band,conditional_f1,conditional_f2,conditional_recall,conditional_precision,conditional_mcc,conditional_pr_auc,conditional_roc_auc,conditional_brier,conditional_tp,conditional_fp,conditional_fn,conditional_tn
+Policy_B_Preferred,B0,1672,181,0.3986,0.3398,0.3094,0.56,0.3667,0.407,0.7614,0.10698,56,44,125,1447
+Policy_B_Preferred,B2,1672,181,0.4307,0.3611,0.326,0.6344,0.411,0.4523,0.7743,0.10367,59,34,122,1457
+Policy_B_Preferred,B3,1672,181,0.426,0.3598,0.326,0.6146,0.4022,0.4233,0.7572,0.10699,59,37,122,1454
+Policy_A_Baseline,B0,3156,249,0.3122,0.2622,0.2369,0.4574,0.2898,0.3108,0.7419,0.09455,59,70,190,2837
+Policy_A_Baseline,B2,3156,249,0.3422,0.2855,0.257,0.512,0.3263,0.3307,0.7349,0.09348,64,61,185,2846
+Policy_A_Baseline,B3,3156,249,0.3424,0.2825,0.253,0.5294,0.3308,0.3257,0.7303,0.09451,63,56,186,2851

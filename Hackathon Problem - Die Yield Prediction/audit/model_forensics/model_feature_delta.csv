@@ -1,0 +1,21 @@
+feature_name,feature_index_in_delta,in_model_A,in_model_B,model_B_gain,model_B_split_count,model_B_gain_rank_overall,physical_meaning,empirical_utility
+b_mean,1,False,True,23126.35,46,2,"Global mean reading across all 2,000 memory blocks","HIGH: #2 overall feature in Model B (Gain: 23,126). Captures systemic sub-die voltage/resistance offset."
+b_std,2,False,True,215.35,2,479,Statistical block anomaly summary: b_std,Rank 479 in Model B. Supplemental anomaly signal.
+b_min,3,False,True,0.0,0,526,Run-length or minimum statistic: b_min,"ZERO: Split count = 0, Gain = 0. Completely pruned by LightGBM trees (colsample/subsampling/redundancy)."
+b_max,4,False,True,1227.44,12,276,Statistical block anomaly summary: b_max,Rank 276 in Model B. Supplemental anomaly signal.
+b_p90,5,False,True,3654.14,21,135,Statistical block anomaly summary: b_p90,Rank 135 in Model B. Supplemental anomaly signal.
+b_p95,6,False,True,4282.74,33,110,95th percentile block value across die,MODERATE: Rank 110. Robust upper-tail reading threshold.
+b_p99,7,False,True,1762.29,19,233,Statistical block anomaly summary: b_p99,Rank 233 in Model B. Supplemental anomaly signal.
+max_minus_100,8,False,True,264.41,4,458,Statistical block anomaly summary: max_minus_100,Rank 458 in Model B. Supplemental anomaly signal.
+mad_100,9,False,True,81.39,1,508,Statistical block anomaly summary: mad_100,Rank 508 in Model B. Supplemental anomaly signal.
+cnt_103,10,False,True,3654.42,17,134,Statistical block anomaly summary: cnt_103,Rank 134 in Model B. Supplemental anomaly signal.
+cnt_104,11,False,True,2509.4,15,187,Statistical block anomaly summary: cnt_104,Rank 187 in Model B. Supplemental anomaly signal.
+cnt_105,12,False,True,1323.22,7,266,Statistical block anomaly summary: cnt_105,Rank 266 in Model B. Supplemental anomaly signal.
+max_roll50,13,False,True,1255.87,11,271,Statistical block anomaly summary: max_roll50,Rank 271 in Model B. Supplemental anomaly signal.
+max_roll100,14,False,True,5705.83,26,72,Peak value of 100-block contiguous sliding window average,MODERATE: Rank 72. Identifies sustained contiguous regional block degradation.
+max_roll50_dev,15,False,True,255.37,3,462,Statistical block anomaly summary: max_roll50_dev,Rank 462 in Model B. Supplemental anomaly signal.
+max_roll100_dev,16,False,True,970.92,10,308,Statistical block anomaly summary: max_roll100_dev,Rank 308 in Model B. Supplemental anomaly signal.
+longest_run_104,17,False,True,0.0,0,523,Run-length or minimum statistic: longest_run_104,"ZERO: Split count = 0, Gain = 0. Completely pruned by LightGBM trees (colsample/subsampling/redundancy)."
+num_runs_104,18,False,True,1643.45,17,240,Statistical block anomaly summary: num_runs_104,Rank 240 in Model B. Supplemental anomaly signal.
+cluster_width,19,False,True,0.0,0,525,Run-length or minimum statistic: cluster_width,"ZERO: Split count = 0, Gain = 0. Completely pruned by LightGBM trees (colsample/subsampling/redundancy)."
+cluster_area,20,False,True,147509.52,66,1,Integral sum of anomalous readings exceeding 104.0 baseline across the cluster,"CRITICAL: #1 overall feature in Model B (Gain: 147,509). Primary driver of subtle failure detection."

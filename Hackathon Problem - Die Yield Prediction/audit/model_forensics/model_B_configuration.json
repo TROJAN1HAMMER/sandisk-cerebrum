@@ -1,0 +1,29 @@
+{
+  "model_name": "Model B (Multi-Resolution Fusion B4)",
+  "architecture": "LightGBM Classifier (Gradient Boosted Decision Trees)",
+  "model_format": "Scikit-learn LGBMClassifier Pickle (model_B.pkl)",
+  "objective": "binary (logistic loss with scale_pos_weight)",
+  "boosting_type": "gbdt",
+  "n_estimators": 150,
+  "learning_rate": 0.05,
+  "num_leaves": 63,
+  "max_depth": -1,
+  "min_child_samples": 20,
+  "subsample": 0.8,
+  "colsample_bytree": 0.7,
+  "scale_pos_weight": 10.0,
+  "reg_alpha": 0.0,
+  "reg_lambda": 0.0,
+  "random_state": 42,
+  "categorical_handling": "None (all 526 features treated as continuous numerical)",
+  "num_features": 526,
+  "feature_breakdown": {
+    "model_A_features": 506,
+    "block_engineered_anomaly_features": 20
+  },
+  "operational_threshold": 0.5376,
+  "cascade_gating_window": "[0.25, 0.55]",
+  "receives_cnn_embeddings": false,
+  "receives_model_A_outputs_as_feature": false,
+  "justification_for_B4_over_B5_B6": "Controlled benchmark proved dual-stream CNN concatenation degraded LightGBM split purity (AUC-PR 0.1771 vs 0.4659). Discrete structure-aware cluster features provided far superior signal-to-noise ratio."
+}

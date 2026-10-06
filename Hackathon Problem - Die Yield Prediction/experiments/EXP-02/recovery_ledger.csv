@@ -1,0 +1,4 @@
+system,tau_A,gate_lower,gate_upper,Model_A_FN,FN_sent_to_Model_B,FN_rescued_by_Model_B,Cascade_remaining_FN,Model_A_TP,TP_sent_to_Model_B,TP_preserved,TP_lost,Cascade_final_TP,Model_A_FP,FP_sent_to_Model_B,FP_removed_by_Model_B,FP_remaining_from_Model_A,New_FP_from_Model_B,Cascade_final_FP
+Production_Baseline,0.51,0.25,0.55,699,215,37,667,357,20,15,5,389,43,25,23,2,69,89
+EXP-01_Locked,0.51,0.25,0.55,707,234,49,662,349,14,10,4,394,40,27,26,1,69,83
+EXP-02_Preferred,0.51,0.295,0.55,707,166,46,665,349,14,10,4,391,40,27,26,1,43,57

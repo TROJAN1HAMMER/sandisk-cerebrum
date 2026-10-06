@@ -1,0 +1,114 @@
+================================================================================
+EXP-01: SPATIAL DEFECT DENSITY RESTORATION & BASELINE RETRAINING
+================================================================================
+Timestamp: 2026-10-06 21:32:01
+Base Directory: /Users/23MIS0012/Desktop/HACKS/SANDISK/Hackathon Problem - Die Yield Prediction/Hackathon Problem - Die Yield Prediction
+Experiment Directory: /Users/23MIS0012/Desktop/HACKS/SANDISK/Hackathon Problem - Die Yield Prediction/Hackathon Problem - Die Yield Prediction/experiments/EXP-01
+
+[1/8] Loading dataset and canonical wafer split...
+  • Loaded train.csv in 18.21s: 173,099 rows, 506 cols
+  • Pre-test eligible dies (old_label == 0): 154,037 rows
+  • Train Set: 128 wafers (126,065 dies, 5,463 fails, 4.3335% fail rate)
+  • Val Set:   32 wafers (27,972 dies, 1,056 fails, 3.7752% fail rate)
+  • Wafer Overlap: 0 (Must be 0)
+
+[2/8] Auditing spatial features before vs after intervention...
+  Feature stats BEFORE intervention (Baseline):
+dataset_split     feature  count  unique_values     mean      std  min  max  non_zero_count  non_zero_pct
+ train_before density_3x3 126065              1 0.000000 0.000000  0.0  0.0               0        0.0000
+ train_before density_5x5 126065              1 0.000000 0.000000  0.0  0.0               0        0.0000
+ train_before radial_dist 126065          11883 0.639228 0.227056  0.0  1.0          126055       99.9921
+ train_before   edge_dist 126065            435 0.380134 0.215477  0.0  1.0          123570       98.0209
+   val_before density_3x3  27972              1 0.000000 0.000000  0.0  0.0               0        0.0000
+   val_before density_5x5  27972              1 0.000000 0.000000  0.0  0.0               0        0.0000
+   val_before radial_dist  27972           3782 0.635531 0.226587  0.0  1.0           27967       99.9821
+   val_before   edge_dist  27972            207 0.375542 0.213672  0.0  1.0           27362       97.8192
+
+  Feature stats AFTER intervention (EXP-01):
+dataset_split     feature  count  unique_values     mean      std  min      max  non_zero_count  non_zero_pct
+  train_after density_3x3 126065            260 0.073163 0.107814 -0.0 0.888889           67368       53.4391
+  train_after density_5x5 126065           1254 0.081492 0.088999 -0.0 0.941176          102549       81.3461
+  train_after radial_dist 126065          11883 0.639228 0.227056  0.0 1.000000          126055       99.9921
+  train_after   edge_dist 126065            435 0.380134 0.215477  0.0 1.000000          123570       98.0209
+    val_after density_3x3  27972            178 0.082546 0.110641 -0.0 0.888889           15639       55.9095
+    val_after density_5x5  27972            798 0.090675 0.089290 -0.0 0.880000           24209       86.5473
+    val_after radial_dist  27972           3782 0.635531 0.226587  0.0 1.000000           27967       99.9821
+    val_after   edge_dist  27972            207 0.375542 0.213672  0.0 1.000000           27362       97.8192
+
+  • Verifying feature semantics safety:
+    - Target 'label' column is NOT used in compute_spatial_features.
+    - Only pre-test 'old_label' from the wafer grid is queried.
+    - density_3x3 in training after: non-zero count = 67,368 (7.32% avg density)
+    - density_3x3 in validation after: non-zero count = 15,639 (8.25% avg density)
+
+[3/8] Verifying existing locked Model A baseline on validation set...
+  • Baseline Model A CM: TP=357, FN=699, FP=42, TN=26874
+  ✅ Locked baseline reproduced bit-for-bit!
+
+[4/8] Training Experimental Model A (EXP-01) with restored spatial density...
+  • Feature Matrix Shapes: Train=(126065, 506), Val=(27972, 506)
+  • Training completed in 26.20s.
+  • Saved experimental artifacts: /Users/23MIS0012/Desktop/HACKS/SANDISK/Hackathon Problem - Die Yield Prediction/Hackathon Problem - Die Yield Prediction/experiments/EXP-01/model_A_spatial.txt
+
+[5/8] Evaluating Experimental Model A on canonical validation set...
+
+  • Model A Baseline: F1=0.4907, PR-AUC=0.4497, Rec=33.81%, Prec=89.47%, TP=357, FN=699, FP=42
+  • Model A EXP-01:   F1=0.4830, PR-AUC=0.4609, Rec=33.05%, Prec=89.72%, TP=349, FN=707, FP=40
+  • Model A Deltas:   ΔF1=-0.0077, ΔPR-AUC=+0.0112, ΔTP=-8, ΔFP=-2
+
+[6/8] Evaluating Selective Cascade with EXP-01 Model A...
+
+  • Cascade Baseline: F1=0.5072, PR-AUC=0.4675, Rec=36.84%, Prec=81.38%, TP=389, FN=667, FP=89, Escalated=3312 (11.84%)
+  • Cascade EXP-01:   F1=0.5140, PR-AUC=0.4755, Rec=37.31%, Prec=82.60%, TP=394, FN=662, FP=83, Escalated=3151 (11.26%)
+  • Cascade Deltas:   ΔF1=+0.0068, ΔPR-AUC=+0.0080, ΔTP=+5, ΔFP=-6
+
+[7/8] Conducting wafer-level breakdown across all 32 validation wafers...
+  • Wafer F1 Impact: 11 improved, 8 unchanged, 13 degraded
+  • Mean Wafer Recall: Baseline=0.3259, EXP-01=0.3169 (Δ=-0.0090)
+  • Median Wafer Recall: Baseline=0.3403, EXP-01=0.3333
+  • Worst Wafer Recall: Baseline=0.0000, EXP-01=0.0000
+
+  • Spatial features importance in EXP-01:
+         feature  gain_baseline  split_baseline   gain_exp01  split_exp01   gain_delta
+28   radial_dist     200.627602               2  8561.563423           53  8360.935822
+110      die_col      65.954002               1  4611.768669           26  4545.814667
+218      die_row    1620.773804              14  2099.201611           20   478.427807
+229  density_5x5     120.421501               2  1909.640388            9  1789.218887
+343    edge_dist     161.587997               2   778.734184            8   617.146187
+448  density_3x3       0.000000               0   246.478996            2   246.478996
+
+[8/8] Generating formal comparison scorecard and verifying artifact hashes...
+
+  • Scorecard generated and saved:
+              category               metric  baseline  experiment  absolute_delta    status
+Model_A_Classification             Accuracy   0.97350     0.97330        -0.00020  DEGRADED
+Model_A_Classification    Balanced Accuracy   0.66830     0.66450        -0.00380  DEGRADED
+Model_A_Classification            Precision   0.89470     0.89720         0.00250  IMPROVED
+Model_A_Classification               Recall   0.33810     0.33050        -0.00760  DEGRADED
+Model_A_Classification             F1 Score   0.49070     0.48300        -0.00770  DEGRADED
+Model_A_Classification             F2 Score   0.38610     0.37830        -0.00780  DEGRADED
+Model_A_Classification                  MCC   0.54090     0.53550        -0.00540  DEGRADED
+       Model_A_Ranking              ROC-AUC   0.79340     0.80160         0.00820  IMPROVED
+       Model_A_Ranking               PR-AUC   0.44970     0.46090         0.01120  IMPROVED
+   Model_A_Calibration          Brier Score   0.04561     0.04475        -0.00086  IMPROVED
+   Model_A_Calibration                  ECE   0.13116     0.12935        -0.00181  IMPROVED
+   Model_A_Operational  True Positives (TP) 357.00000   349.00000        -8.00000  DEGRADED
+   Model_A_Operational False Negatives (FN) 699.00000   707.00000         8.00000  DEGRADED
+   Model_A_Operational False Positives (FP)  42.00000    40.00000        -2.00000  IMPROVED
+Cascade_Classification     Cascade F1 Score   0.50720     0.51400         0.00680  IMPROVED
+Cascade_Classification       Cascade Recall   0.36840     0.37310         0.00470  IMPROVED
+Cascade_Classification    Cascade Precision   0.81380     0.82600         0.01220  IMPROVED
+       Cascade_Ranking       Cascade PR-AUC   0.46750     0.47550         0.00800  IMPROVED
+   Cascade_Operational           Cascade TP 389.00000   394.00000         5.00000  IMPROVED
+   Cascade_Operational           Cascade FP  89.00000    83.00000        -6.00000  IMPROVED
+   Cascade_Operational    Escalation Rate %  11.84000    11.26000        -0.58000  IMPROVED
+      Wafer_Robustness    Mean Wafer Recall   0.32590     0.31690        -0.00900  DEGRADED
+      Wafer_Robustness  Median Wafer Recall   0.34040     0.33330        -0.00700  DEGRADED
+      Wafer_Robustness   Worst Wafer Recall   0.00000     0.00000         0.00000 UNCHANGED
+
+  • Production Artifact Integrity Check:
+  ✅ ZERO MUTATIONS: All 9 production artifacts remain 100% bit-for-bit identical!
+
+================================================================================
+EXP-01 EXECUTION COMPLETED
+================================================================================

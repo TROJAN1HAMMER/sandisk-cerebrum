@@ -1,213 +1,336 @@
-# SanDisk Cerebrum: Selective Multi-Resolution Die Yield Intelligence
+# SanDisk Cerebrum
+## AI-Powered Die Yield Intelligence Platform
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Streamlit](https://img.shields.io/badge/dashboard-Streamlit-FF4B4B.svg)](https://streamlit.io/)
-[![LightGBM](https://img.shields.io/badge/ML-LightGBM-brightgreen.svg)](https://lightgbm.readthedocs.io/)
-[![PyTorch](https://img.shields.io/badge/DL-PyTorch-EE4C2C.svg)](https://pytorch.org/)
-[![Zero-Leakage Audit](https://img.shields.io/badge/Split%20Audit-VERIFIED%20CLEAN-3FB950.svg)](results/AUTHORITATIVE_CLEAN_METRICS.json)
-[![Tests Passing](https://img.shields.io/badge/Unit%20Tests-14%2F14%20PASSING-success.svg)](tests/)
-
-> **"Inspect every die cheaply. Escalate only uncertain dies for deeper sub-die block inspection."**
-
----
-
-## Executive Summary
-
-Modern semiconductor fabrication produces tens of thousands of dies per wafer. While coarse-grained parametric electrical testing is cheap and high-throughput, subtle localized defects often hide within microscopic sub-die block structures (2,000 sequence readings per die). Conversely, parsing sub-die sequences across 100% of manufactured dies introduces massive computational latency and false alarm noise on confident passes.
-
-**SanDisk Cerebrum** solves this fundamental trade-off through a **Selective Multi-Resolution Cascade**:
-1. **Model A (Screening Layer):** Evaluates $500$ parametric electrical features + $6$ spatial wafer context features across 100% of dies with ultra-low latency.
-2. **Confidence Gating Window $[0.25, 0.55]$:** Immediately clears confident passes ($P_A < 0.25$) and flags blatant defects ($P_A > 0.55$) on the **Fast Path (88.14% of dies)**.
-3. **Model B (Sub-Die Resolution Layer):** Invoked *strictly* for the **11.86% ambiguous dies**, extracting $20$ engineered anomaly features from $2,000$ sub-die readings to rescue missed failures.
-
----
-
-## Benchmark & Authoritative Results
-
-Evaluated on the **Canonical 32 Holdout Validation Wafers (27,972 dies, 0.0% train overlap)**:
-
-| Metric | Model A Baseline | Standalone Model B (100%) | Selective Cascade Gate B (Recommended) | Selective Cascade Gate C (High Precision) |
-| :--- | :---: | :---: | :---: | :---: |
-| **Gating Window** | None (0% Escalation) | Unrestricted (100%) | **`[0.25, 0.55]`** | `[0.30, 0.60]` |
-| **Operating Threshold** | `0.5100` | `0.5376` | **Dynamic (`0.5100` / `0.5376`)** | Dynamic (`0.5100` / `0.5376`) |
-| **Fail F1 Score** | `0.4907` | `0.4707` | **`0.5072` (+3.35% rel. gain)** | `0.5064` (+3.20% rel. gain) |
-| **AUC-PR** | `0.4498` | `0.4659` | **`0.4677` (+3.99% rel. gain)** | `0.4604` (+2.36% rel. gain) |
-| **Precision** | `89.47%` | `73.74%` | **`81.38%`** | `87.07%` |
-| **Recall** | `33.81%` | `34.56%` | **`36.84%`** | `35.70%` |
-| **ROC-AUC** | `0.7934` | `0.8336` | **`0.7990`** | `0.7935` |
-| **Escalation Count** | 0 dies (0.00%) | 27,972 dies (100.0%) | **`3,317 dies` (`11.86%`)** | `1,626 dies` (`5.81%`) |
-| **Block Compute Saved**| 100.00% | 0.00% | **`88.14%` (24,655 dies fast-path)** | `94.19%` (26,346 dies fast-path) |
-| **Gross FN Recovery** | — (0) | 47 / 699 (6.72%) | **`37 / 699` (`5.29%`)** | `30 / 699` (`4.29%`) |
-| **Net TP Gain** | — (0) | +8 dies (365 vs 357) | **`+32 dies` (389 vs 357)** | `+20 dies` (377 vs 357) |
-| **New False Positives**| — (0) | +88 dies (130 vs 42) | **`+47 dies` (89 vs 42)** | `+14 dies` (56 vs 42) |
-
----
-
-## System Architecture
-
-```
-                                    [ 100% OF MANUFACTURED DIES (27,972) ]
-                                                      │
-                                                      ▼
-                                       ┌──────────────────────────────┐
-                                       │    MODEL A FAST SCREENING    │
-                                       │ 500 Parametric + 6 Spatial   │
-                                       └──────────────┬───────────────┘
-                                                      │
-                                           Calculate Risk P_A
-                                                      │
-                         ┌────────────────────────────┼────────────────────────────┐
-                         │                            │                            │
-                         ▼                            ▼                            ▼
-                 P_A < 0.25 (75.3%)           0.25 ≤ P_A ≤ 0.55 (11.9%)      P_A > 0.55 (12.8%)
-                [ CONFIDENT PASS ]               [ UNCERTAIN ZONE ]          [ CONFIDENT FAIL ]
-                         │                            │                            │
-                         │                            ▼                            │
-                         │             ┌──────────────────────────────┐            │
-                         │             │    MODEL B SUB-DIE FUSION    │            │
-                         │             │ 20 Block Anomaly Features    │            │
-                         │             └──────────────┬───────────────┘            │
-                         │                            │                            │
-                         │                     P_B ≥ 0.5376                        │
-                         │                       ┌────┴────┐                       │
-                         │                       ▼         ▼                       │
-                         │                     [PASS]    [FAIL]                    │
-                         │                       │         │                       │
-                         ▼                       ▼         ▼                       ▼
-            ┌─────────────────────────┐                            ┌─────────────────────────┐
-            │   CLEARED PASS (TN)     │                            │   FLAGGED DEFECT (TP)   │
-            │   (88.14% Fast Path)    │                            │   (+32 Net TP Boost)    │
-            └─────────────────────────┘                            └─────────────────────────┘
+```text
+================================================================================
+                    FINAL VALIDATED CANDIDATE: B2 ENHANCED CASCADE
+--------------------------------------------------------------------------------
+ 93.78% Compute Saved  │  0.5177 Cascade F1   │  0.4808 PR-AUC   │  0.8078 ROC-AUC
+ 37.17% Defect Recall  │  85.22% Precision    │  +37 Net TP Gain │  35/35 Tests Pass
+--------------------------------------------------------------------------------
+ Validated On: 40 Independent Wafers • 32,598 Dies • 1,380 Defects (input/test.csv)
+================================================================================
 ```
 
----
-
-## Mathematical Resolution of Recovered Dies
-
-Under **Cascade Gate B**, the confusion matrix decomposes as:
-$$\text{Net TP Gain} = \text{Gross FNs Recovered} - \text{TPs Lost in Gate}$$
-$$+32 = 37 - 5$$
-
-* **Gross Model A FNs Recovered:** **37 dies** ($5.29\%$ of 699 missed fails rescued).
-* **Model A TPs Lost:** **5 dies** ($1.4\%$ of 357 dies fell below 0.5376).
-* **Net Additional True Positives Captured:** **+32 defects** ($389 \text{ TP}$ vs $357 \text{ TP}$).
-* **Compute Savings:** **$88.14\%$** of validation dies never touch the block feature pipeline.
+**SanDisk Cerebrum** is an enterprise-grade semiconductor die yield intelligence system built for high-throughput fabrication facilities. By combining ultra-fast fab-level screening with an asymmetric uncertainty gate and sub-die anomaly intelligence, Cerebrum accurately detects subtle physical silicon failures while bypassing **93.78%** of healthy dies from expensive secondary test sequences.
 
 ---
 
-## Enterprise Control Room Dashboard
+## The Semiconductor Yield Problem
 
-The project includes a 9-page Streamlit application:
+Modern high-density NAND flash and ASIC wafers contain tens of thousands of dies per wafer reticle. Manufacturing defect rates are inherently low (~3.7% to 4.2%), creating an extreme class-imbalance challenge:
 
-1. **• Overview / Control Room:** Real-time production KPI cards, quantified gains, and pipeline architecture.
-2. **• Wafer Intelligence:** Interactive Plotly wafer map with defect filtering, spatial coordinate mapping, and tooltips across all 32 holdout wafers.
-3. **• Live Die Check:** Interactive live inference console with 3 modes (Validation Presets/Demos, CSV upload batch prediction, manual input) and 1D occlusion sensitivity visualization.
-4. **• Model Lab:** Dedicated visual laboratory comparing Model A, Model B, and Gate Cascade with individual metric profiles, 2x2 confusion heatmaps, and classification donuts.
-5. **• Model Comparison:** Judge-friendly comparative analytics with 6-dimension grouped bar charts, side-by-side confusion heatmaps, error population bar charts, and $A \rightarrow B$ delta distribution histograms.
-6. **• Cascade Analytics:** Pareto trade-off curves ($F_1$ vs Escalation Rate), compute savings vs precision curves, and gating window sweep tables.
-7. **• Model Performance:** Dynamic live evaluation engine (`▶ RUN FULL EVALUATION`) verifying reproducibility against the authoritative benchmark.
-8. **• Error Analysis:** Confusion transition cards, recovery equations, and interactive population drill-down tables.
-9. **• System Status:** Automated integrity badge board confirming canonical split integrity, zero-leakage compliance, and unit test results.
+1. **The Cost of Over-Testing:** Collecting and analyzing deep, 2,000-block sub-die electrical traces across 100% of manufactured dies creates severe automated test equipment (ATE) throughput bottlenecks, costing fab operators millions of dollars in test-floor latency.
+2. **The Cost of Escaped Defects:** Parametric fab measurements alone miss localized microscopic defects (such as gate oxide breakdown or pinhole shorts), causing defective dies to ship to packaging where assembly costs compound tenfold.
+3. **The False-Scrap Trap:** Naive machine learning models trained on raw sequences produce unacceptable false alarms on benign dies that merely exhibit wafer-wide baseline voltage drift, scrapping perfectly functional silicon.
+
+---
+
+## The Solution: Selective Multi-Resolution Cascade
+
+SanDisk Cerebrum deploys a selective asymmetric cascade that matches inspection resolution to prediction confidence:
+
+```mermaid
+flowchart LR
+    D[Die Telemetry] --> A[Model A<br/>506 Features<br/>Spatial-Restored GBDT]
+    A --> G{Uncertainty Gate<br/>P_A in [0.295, 0.550]}
+
+    G -->|P_A < 0.295| F[Fast Path Pass<br/>93.78% of Dies<br/>Bypass Model B]
+    G -->|0.295 <= P_A < 0.550| B[B2 Enhanced Model B<br/>536 Features<br/>Sub-Die Anomaly Signals]
+    G -->|P_A >= 0.550| ADEC[Model A Decision<br/>Confident Defect]
+
+    B --> T{B2 Threshold<br/>tau_B = 0.5376}
+    T -->|P_B < 0.5376| PASS[Pass]
+    T -->|P_B >= 0.5376| FAIL[Defect]
+
+    F --> OUT[Final Disposition]
+    ADEC --> OUT
+    PASS --> OUT
+    FAIL --> OUT
+```
+
+1. **Stage 1 (Model A Screening):** Evaluates 100% of manufactured dies using 500 parametric electrical measurements and restored pre-test spatial neighborhood density in under 1.2 ms per die.
+2. **Stage 2 (Uncertainty Gate $[0.295, 0.550]$):**
+   - **Fast Path ($P_A < 0.295$):** 93.78% of dies are confidently healthy and bypass secondary testing entirely.
+   - **Confident Defect ($P_A \ge 0.550$):** Flagged immediately as failures by Model A.
+   - **Ambiguous Zone ($0.295 \le P_A < 0.550$):** Only 6.22% of boundary dies are escalated to Model B.
+3. **Stage 3 (B2 Sub-Die Resolution):** Analyzes 2,000 sequential readings per die using 10 engineered anomaly features to rescue subtle defects while filtering out baseline drift.
+
+---
+
+## Key Results
+
+Authoritative performance across populations, from historical baseline to independent validation:
+
+| Metric | Historical Baseline (B0) | Confirmed B2 (Canonical) | **Final B2 (Independent EXP-04)** | 95% Bootstrap CI |
+|---|---|---|---|---|
+| **Population** | Canonical 32 Wafers | Canonical 32 Wafers | **Independent 40 Wafers** | 1,000 Resamples |
+| **Dies / Defects** | 27,972 / 1,056 | 27,972 / 1,056 | **32,598 / 1,380** | — |
+| **Defect Rate** | 3.7752% | 3.7752% | **4.2334%** | — |
+| **Cascade F1** | `0.5072` | `0.5254` | **`0.5177`** | `[0.4948, 0.5369]` |
+| **PR-AUC** | `0.4677` | `0.4777` | **`0.4808`** | `[0.4465, 0.5089]` |
+| **ROC-AUC** | `0.7990` | `0.7986` | **`0.8078`** | `[0.7932, 0.8220]` |
+| **Precision** | `81.38%` | `89.32%` | **`85.22%`** | — |
+| **Recall** | `36.84%` | `37.22%` | **`37.17%`** | — |
+| **True Positives (TP)** | 389 | 393 | **513** | — |
+| **False Negatives (FN)**| 667 | 663 | **867** | — |
+| **False Positives (FP)**| 89 | 47 | **89** | — |
+| **True Negatives (TN)** | 26,827 | 26,869 | **31,129** | — |
+| **Escalation Rate** | 11.86% (3,317 dies) | 5.98% (1,674 dies) | **`6.22%` (2,027 dies)** | — |
+| **Compute Saved** | 88.14% | 94.02% | **`93.78%` (30,571 dies)**| — |
+| **Net Defect Gain** | +32 vs Model A | +36 vs Model A | **`+37` vs Model A** | — |
+
+---
+
+## Why the Cascade?
+
+* **Asymmetric Cost of Computation:** Parsing raw waveforms for 32,598 dies requires significant memory and CPU/GPU time. Bypassing 93.78% of dies reduces automated test overhead by over 15x.
+* **Intelligent Precision Filtering:** Unconstrained sub-die models run on 100% of dies generate high absolute numbers of false alarms. Confining Model B strictly to the ambiguous zone $[0.295, 0.550]$ preserves an **85.22% precision**.
+* **Defect Recovery Tradeoff:** On the independent 40-wafer test set, B2 rescued **41 out of 176** Model-A false negatives that entered the gate (**23.30% rescue rate**), producing a net gain of +37 defectives captured (513 vs 476) at the expense of only 43 additional false positives across 32,598 dies.
+
+---
+
+## Model Evolution (B0 → B2)
+
+The system evolved through five rigorous experimental cycles documented in [docs/MODEL_EVOLUTION_REPORT.md](docs/MODEL_EVOLUTION_REPORT.md):
+
+```text
+BASELINE (B0)
+      │  F1: 0.5072 | Gate: [0.25, 0.55] | Compute Saved: 88.14%
+      ▼
+EXP-01: Spatial Defect Density Restoration
+      │  Discovered density_3x3 / 5x5 were zeroed due to pre-filtering bug.
+      │  Restored wafer-wide reticle convolution. PR-AUC boosted +2.98%.
+      ▼
+EXP-02: Joint Threshold & Asymmetric Cascade Optimization
+      │  Pareto sweep revealed [0.25, 0.295] dies were overwhelmingly healthy.
+      │  Shifted gate to [0.295, 0.550]; halved Model B calls; compute saved 94.02%.
+      ▼
+EXP-03: Model B Feature & Error-Profile Improvement
+      │  Replaced brittle legacy threshold 104 with 10 local anomaly features.
+      │  Engineered Candidate B2 (536 features) and B3 (532 features).
+      ▼
+EXP-03B: Frozen Candidate Confirmation
+      │  Locked definitions, re-extracted deterministically; verified exact metrics.
+      │  B2 confirmed superior precision (89.32% vs 88.74%); frozen for evaluation.
+      ▼
+EXP-04: Independent Holdout Generalization
+      │  Evaluated on 40 untouched wafers (32,598 dies).
+      │  PR-AUC: 0.4808 (+0.65%), ROC-AUC: 0.8078 (+1.16%), F1: 0.5177.
+      ▼
+FINAL PRODUCTION PROMOTION: B2 ENHANCED MODEL B
+```
+
+---
+
+## B2 Feature Engineering
+
+Candidate B2 uses **536 features** derived directly from the physical testing process:
+
+```text
+500 Parametric Electrical Features (Fab Sensor Telemetry)
+  +
+  6 Wafer Spatial Features (radial_dist, edge_dist, die_row, die_col, density_3x3, density_5x5)
+  +
+ 20 Legacy Block Statistics (b_mean, b_std, b_max, mad_50, cnt_100, roll_mean_max, etc.)
+  +
+ 10 Engineered Block Anomaly Candidates (cnt_110/115/120, cluster_area_110/115, roll20, prominence, top10)
+  =
+536 Total Features
+```
+
+### Physical Rationale for Enhanced Block Features
+* **Multi-Threshold Spike Counts (`cnt_110`, `cnt_115`, `cnt_120`):** Measure extreme electrical breakdown events rather than moderate noise.
+* **Multi-Threshold Cluster Areas (`cluster_area_110`, `cluster_area_115`):** Quantify the spatial breadth of high-energy defects.
+* **Rolling-20 Deviations (`max_roll20`, `max_roll20_dev`, `max_roll20_rel`):** Isolate transient spikes relative to the die's own baseline, preventing wafer-wide DC level shifts from triggering false alarms.
+* **Peak Prominence (`peak_prominence`):** Peak amplitude minus local baseline floor.
+* **Top-10 Energy (`top10_dev`):** Concentrated defect energy in the 10 highest readings.
+
+---
+
+## Validation Methodology & Leakage Controls
+
+* **Wafer-Level Isolation:** Splitting is performed strictly by wafer lot. Zero random die shuffling across splits ensures models never observe adjacent dies from the same physical wafer during training.
+* **Pre-Test Spatial Context:** Defect density convolutions strictly use pre-test spatial layouts; no test outcomes or label information leak between neighbors.
+* **Frozen Pre-Evaluation:** Model B weights, feature definitions, and thresholds ($\tau_A=0.5100, \tau_B=0.5376, \text{Gate}=[0.295, 0.550]$) were frozen before touching the 40-wafer independent dataset (`input/test.csv`).
+
+---
+
+## Explainability & Diagnostics Workstation
+
+The platform integrates deep semiconductor explainability into its workstation:
+1. **Interactive Circular Wafer Maps:** Full SVG reticle visualizer with spatial defect clusters, edge-exclusion zones, and radial distance overlays.
+2. **Die-Level Cascade Trace:** Inspect exact routing decisions: Model A screening score $\to$ Gating classification $\to$ Model B sub-die invocation $\to$ Final disposition.
+3. **2,000-Block Waveform Viewer:** Zoom into the raw sub-die test sequence with interactive threshold bands (104, 110, 115, 120 units).
+4. **PyTorch 1D CNN Occlusion Attribution:** Sliding occlusion window attribution identifies the exact temporal block sequence that triggered an anomalous decision.
+
+---
+
+## Platform Architecture
+
+```text
+React 18 / TypeScript / Vite Frontend (TailwindCSS, Lucide, TanStack Query)
+                             │
+                             ▼  HTTP / REST
+FastAPI Backend (Uvicorn, Pydantic v2, CORS, State Lifecycle)
+                             │
+     ┌───────────────────────┼───────────────────────┐
+     ▼                       ▼                       ▼
+LightGBM Engine         PyTorch 1D CNN         Inference Pipeline
+(Model A + B2)       (Attribution/Diagnostics) (Live Single & Batch)
+```
+
+* **Frontend:** React 18, TypeScript 5.5, Vite 5.4, TailwindCSS, TanStack Query, Lucide Icons.
+* **Backend:** FastAPI 0.115, Python 3.10+, LightGBM 4.6, PyTorch 2.4 (MPS hardware acceleration), Pandas 2.2, NumPy 2.2.
+* **Artifact Integrity:** Centralized release metadata in [models/model_release.json](models/model_release.json); historical baseline preserved in [models/model_B_original_production_backup.pkl](models/model_B_original_production_backup.pkl).
 
 ---
 
 ## Repository Structure
 
-```
-sandisk-cerebrum/
-├── .gitignore                                 # Excludes raw >3.8GB CSVs while tracking all models & code
-├── README.md                                  # Production enterprise documentation
-├── requirements.txt                           # Frozen production dependencies
-├── app.py                                     # 9-page Enterprise Streamlit Dashboard
-├── audit_reproducibility.py                   # Automated verification & forensic audit script
-├── build_model_A.py                           # Model A baseline training pipeline
-├── build_model_B.py                           # Model B multi-resolution experiments & feature fusion
-├── build_selective_cascade.py                 # Uncertainty gating sweep & cascade optimizer
-├── predict.py                                 # Production batch inference CLI
-├── config.yaml                                # Centralized threshold and gate configurations
-│
-├── src/                                       # Core modular libraries
-│   ├── block_parser.py                        # Fast sub-die block parsing & 20 engineered features
-│   ├── cascade.py                             # Uncertainty gate logic & cascade decision engine
-│   ├── data_loader.py                         # Leakage-safe canonical wafer split loader
-│   ├── evaluation_protocol.py                 # Standardized confusion matrix & ranking metrics
-│   ├── explainability.py                      # 1D block occlusion attribution & feature importance
-│   ├── live_inference.py                      # Real-time live inference & evaluation engine
-│   ├── model_a.py                             # Model A inference wrapper
-│   ├── model_b.py                             # Model B inference wrapper
-│   ├── spatial.py                             # Wafer coordinate geometry & neighborhood densities
-│   └── visualizer.py                          # Semiconductor plotting utilities
-│
-├── models/                                    # Production model checkpoints
-│   ├── model_A.pkl / model_A.txt              # Trained LightGBM Model A (506 features)
-│   ├── model_B.pkl                            # Trained LightGBM Model B (526 features)
-│   ├── cnn_1d_block_model.pt                  # Trained 1D CNN PyTorch checkpoint
-│   └── selective_cascade_meta.pkl             # Gating metadata
-│
-├── results/                                   # Authoritative benchmarks & audit reports
-│   ├── AUTHORITATIVE_CLEAN_METRICS.json       # Single source of truth metrics
-│   ├── canonical_wafer_split.json             # Canonical 128 train / 32 val wafer split
-│   ├── final_clean_benchmark.csv              # Benchmark comparison table
-│   ├── val_die_diagnostics.csv                # 3MB precomputed diagnostics for 27,972 dies
-│   ├── clean_model_B_predictions.csv          # Clean validation prediction vectors
-│   ├── runtime_evaluation_latest.json         # Dynamic live evaluation output
-│   ├── MODEL_A_DISCREPANCY_AUDIT.md           # Forensic audit documentation
-│   └── PHASE_3C_FINAL_SELECTION.md            # Final architectural selection report
-│
-├── tests/                                     # Automated test suites
-│   ├── test_live_inference_and_evaluation.py  # Live inference, schema validation & eval tests
-│   ├── test_phase3c_metrics.py                # Mathematical consistency & benchmark tests
-│   └── test_split_integrity.py                # Zero-leakage canonical split verification
-│
-└── visualizations/                            # High-resolution publication plots
-    ├── probability_calibration.png            # Reliability calibration curve
-    ├── model_B_block_attribution.png          # 1D sub-die block occlusion sensitivity
-    ├── model_B_delta_distribution.png         # Delta risk shift distribution
-    └── wafer_prediction_map.png               # Spatial wafer map
+```text
+.
+├── backend/                  # FastAPI production backend
+│   ├── api/
+│   │   ├── routes/           # REST endpoints (models, wafers, inference, system)
+│   │   └── schemas/          # Pydantic v2 validation contracts
+│   ├── config.py             # Centralized settings and frozen gate parameters
+│   ├── deps.py               # ML model loader and memory state lifecycle
+│   └── main.py               # FastAPI application entrypoint
+├── docs/                     # Technical documentation & defense reports
+│   ├── FINAL_MODEL_CHEATSHEET.md    # Compact hackathon presentation cheat sheet
+│   └── MODEL_EVOLUTION_REPORT.md    # Exhaustive 22-section technical viva report
+├── experiments/              # Immutable historical experiment archives
+│   ├── EXP-01/               # Spatial defect density restoration
+│   ├── EXP-02/               # Joint threshold & gate optimization
+│   ├── EXP-03/               # Model B feature engineering (B2 & B3)
+│   ├── EXP-03B/              # Deterministic candidate confirmation
+│   └── EXP-04/               # Final independent holdout generalization
+├── frontend/                 # React 18 + Vite engineering workstation
+│   ├── src/
+│   │   ├── components/       # Silicon design system (WaferMap, MetricCards, etc.)
+│   │   ├── pages/            # Workspaces (CommandCenter, WaferIntelligence, etc.)
+│   │   └── services/         # Typed API clients
+├── models/                   # Active and archival model artifacts
+│   ├── model_A.pkl           # EXP-01 spatial-restored LightGBM (active)
+│   ├── model_B.pkl           # B2 enhanced LightGBM (active production candidate)
+│   ├── model_B_original_production_backup.pkl # B0 reference archival backup
+│   ├── model_release.json    # Centralized model release metadata source of truth
+│   └── cnn_1d_block_model.pt # PyTorch 1D CNN (diagnostics & attribution only)
+├── results/                  # Authoritative benchmarks & validation datasets
+│   ├── AUTHORITATIVE_CLEAN_METRICS.json
+│   ├── canonical_wafer_split.json
+│   └── val_die_diagnostics.csv
+├── src/                      # Core ML engines and feature extractors
+│   ├── live_inference.py     # End-to-end live cascade prediction pipeline
+│   ├── explainability.py     # Occlusion attribution engine
+│   └── block_parser.py       # Sequential 2,000-block feature engineering
+└── tests/                    # Unit and integration test suite (35/35 passing)
 ```
 
 ---
 
-## Quickstart & Installation
+## Running the Platform
 
-### 1. Clone & Set Up Environment
+### 1. Environment Setup
+
 ```bash
-git clone https://github.com/TROJAN1HAMMER/sandisk-cerebrum.git
-cd sandisk-cerebrum
+# Clone repository
+git clone <repo-url>
+cd "Hackathon Problem - Die Yield Prediction"
 
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r "Hackathon Problem - Die Yield Prediction/requirements.txt"
+# Backend dependencies
+pip install -r requirements.txt
+
+# Frontend dependencies
+cd frontend && npm install && cd ..
 ```
 
-### 2. Run Automated Unit Tests
+### 2. Run Test Suite
+
 ```bash
-cd "Hackathon Problem - Die Yield Prediction"
+# Execute all 35 backend tests (verifies B2 artifact, gates, endpoints, inference)
 python3 -m unittest discover tests
 ```
-*Expected output: `Ran 14 tests in 0.145s, OK`.*
 
-### 3. Launch Enterprise Dashboard
+### 3. Start Backend API Server
+
 ```bash
-streamlit run app.py --server.port 8501
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-Open **`http://localhost:8501`** in your browser.
+
+*Interactive Swagger API Docs:* `http://localhost:8000/docs`
+
+### 4. Start Frontend Application
+
+```bash
+cd frontend
+npm run dev
+```
+
+*Workstation UI:* `http://localhost:5173`
 
 ---
 
-## Leakage-Safe Audit Verification
+## API Endpoints
 
-All experimental partitions strictly adhere to the canonical wafer split:
-* **Canonical Train Set:** 128 wafers ($126,065$ dies, $4.33\%$ failure rate).
-* **Canonical Holdout Validation Set:** 32 wafers ($27,972$ dies, $3.78\%$ failure rate).
-* **Wafer Overlap:** **0.0% (Zero Wafers)**.
-* **Pre-Test Filter:** Strictly applied `old_label == 0` (only functional dies eligible for yield prediction).
-* **Forbidden Features:** `wafer_id`, `old_label`, `label`, and post-test metadata are 100% blocked from all model inputs.
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/v1/system/health` | Service liveness health check |
+| `GET` | `/api/v1/system/status` | Runtime model verification and active gates |
+| `GET` | `/api/v1/models/release` | Centralized B2 release metadata & evaluation metrics |
+| `GET` | `/api/v1/models/metrics` | Authoritative single source of truth metrics |
+| `GET` | `/api/v1/models/benchmark` | Architecture comparison matrix & Pareto sweeps |
+| `GET` | `/api/v1/wafers` | List all wafers with defect counts and yield statistics |
+| `GET` | `/api/v1/wafers/{wafer_id}/dies` | Retrieve die coordinates, predictions, and status |
+| `GET` | `/api/v1/wafers/{wafer_id}/dies/{row}/{col}` | Detailed single die diagnostic record |
+| `POST`| `/api/v1/inference/die` | Real-time single die multi-resolution cascade inference |
+| `POST`| `/api/v1/inference/batch` | High-throughput batch inference via CSV upload |
+| `GET` | `/api/v1/inference/block-attribution`| PyTorch CNN occlusion attribution map |
 
 ---
 
-## Author & Attribution
+## Testing & Build Verification
 
-* **Project:** SanDisk Cerebrum Die Yield Intelligence
-* **Developer:** Balaachuanu (`TROJAN1HAMMER`)
-* **Repository:** [https://github.com/TROJAN1HAMMER/sandisk-cerebrum](https://github.com/TROJAN1HAMMER/sandisk-cerebrum)
+* **Unit & Integration Tests:** **`35/35 PASS`**
+  ```bash
+  python3 -m unittest discover tests
+  # Ran 35 tests in 0.758s - OK
+  ```
+* **Frontend Production Build:** **`0 Errors`**
+  ```bash
+  cd frontend && npm run build
+  # ✓ built in 3.67s
+  ```
+
+---
+
+## Experiment Archives
+
+Historical artifacts and detailed logs are preserved in:
+* [experiments/EXP-01/EXP-01_FINAL.md](experiments/EXP-01/EXP-01_FINAL.md) — Spatial density restoration
+* [experiments/EXP-02/EXP-02_FINAL.md](experiments/EXP-02/EXP-02_FINAL.md) — Operating point & gate optimization
+* [experiments/EXP-03/EXP-03_FINAL.md](experiments/EXP-03/EXP-03_FINAL.md) — Feature engineering & B2 discovery
+* [experiments/EXP-03B/EXP-03B_FINAL.md](experiments/EXP-03B/EXP-03B_FINAL.md) — Deterministic candidate confirmation
+* [experiments/EXP-04/EXP-04_FINAL.md](experiments/EXP-04/EXP-04_FINAL.md) — Final independent generalization
+
+---
+
+## Limitations & Future Work
+
+1. **Recall Operating Point:** B2 operates at **37.17% recall** to guarantee **85.22% precision**. Fabs prioritizing defect detection over scrap reduction can shift the operating point along the Pareto curve.
+2. **Probability Calibration:** Decision scores inside $[0.295, 0.550]$ would benefit from isotonic post-calibration.
+3. **Temporal Fab Drift:** Longitudinal validation across tool preventive maintenance (PM) cycles will be essential for ongoing model lifecycle management.
+
+---
+
+## Team & Hackathon Context
+
+Developed for the **SanDisk / Western Digital AI Hackathon: Die Yield Prediction Challenge**.  
+Architecture designed, validated, and finalized under zero data-leakage constraints.
+
+---
+
+## License
+
+MIT License. Designed for semiconductor manufacturing research and yield intelligence applications.

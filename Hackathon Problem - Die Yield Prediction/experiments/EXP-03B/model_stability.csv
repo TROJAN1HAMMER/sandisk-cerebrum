@@ -1,0 +1,2 @@
+total_dies,identical_predictions,changed_predictions,agreement_pct,TP_to_FN (Defects lost in B3),FN_to_TP (Defects gained in B3),FP_to_TN (False alarms removed in B3),TN_to_FP (False alarms added in B3)
+27972,27901,71,99.746,13,13,21,24

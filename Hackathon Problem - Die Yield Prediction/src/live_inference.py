@@ -70,6 +70,42 @@ def compute_die_spatial_signals(die_row_val, die_col_val, max_r=38, max_c=38):
     }
 
 
+def extract_advanced_candidate_block_features(block_matrix):
+    """Extract B2 frozen candidate block features (10 features)."""
+    n = len(block_matrix)
+    b_mean = block_matrix.mean(axis=1)
+    b_max = block_matrix.max(axis=1)
+    b_p95 = np.percentile(block_matrix, 95, axis=1)
+    
+    cnt_110 = (block_matrix > 110.0).sum(axis=1).astype(np.float32)
+    cnt_115 = (block_matrix > 115.0).sum(axis=1).astype(np.float32)
+    cnt_120 = (block_matrix > 120.0).sum(axis=1).astype(np.float32)
+    
+    area_110 = np.maximum(0, block_matrix - 110.0).sum(axis=1).astype(np.float32)
+    area_115 = np.maximum(0, block_matrix - 115.0).sum(axis=1).astype(np.float32)
+    
+    roll_20_max = np.zeros(n, dtype=np.float32)
+    for i in range(n):
+        roll_20_max[i] = uniform_filter1d(block_matrix[i], size=20, mode='nearest').max()
+        
+    roll_20_dev = (roll_20_max - 100.0).astype(np.float32)
+    roll_20_rel = (roll_20_max - b_mean).astype(np.float32)
+    peak_prom = (b_max - b_p95).astype(np.float32)
+    
+    top10_mean = np.partition(block_matrix, -10, axis=1)[:, -10:].mean(axis=1)
+    top10_dev = (top10_mean - b_mean).astype(np.float32)
+    
+    cols = [
+        'cnt_110', 'cnt_115', 'cnt_120', 'cluster_area_110', 'cluster_area_115',
+        'max_roll20', 'max_roll20_dev', 'max_roll20_rel', 'peak_prominence', 'top10_dev'
+    ]
+    feats = np.column_stack([
+        cnt_110, cnt_115, cnt_120, area_110, area_115,
+        roll_20_max, roll_20_dev, roll_20_rel, peak_prom, top10_dev
+    ])
+    return pd.DataFrame(feats, columns=cols)
+
+
 def predict_single_die_live(
     die_dict,
     model_A,
@@ -81,7 +117,7 @@ def predict_single_die_live(
 ):
     """
     Execute real live inference pipeline on a single die:
-    Input -> Model A (Parametric+Spatial) -> Gating [0.25, 0.55] -> Model B (Sub-die Block) -> Final Decision.
+    Input -> Model A (Parametric+Spatial) -> Gating [0.25, 0.55] or [0.295, 0.55] -> Model B (Sub-die Block) -> Final Decision.
     """
     param_cols = [f'feature_{i}' for i in range(1, 501)]
     
@@ -128,7 +164,10 @@ def predict_single_die_live(
     if in_gate:
         # Escalated Path -> Run Model B
         compute_path = "ESCALATED PATH"
-        gate_msg = f"Model B was invoked because Model A probability ({p_A:.4f}) fell inside [{gate_lower:.2f}, {gate_upper:.2f}]."
+        gate_msg = f"Model B was invoked because Model A probability ({p_A:.4f}) fell inside [{gate_lower:.3f}, {gate_upper:.3f}]."
+        
+        # Check Model B feature requirement (526 for B0 vs 536 for B2)
+        b_feat_dim = getattr(model_B, 'n_features_in_', 526)
         
         # Extract Block Features
         if 'block_readings' in die_dict and isinstance(die_dict['block_readings'], str):
@@ -136,8 +175,16 @@ def predict_single_die_live(
             b_eng_df = extract_B1_engineered_features(b_mat)
             b_eng_vals = b_eng_df.values[0]
             block_eng_dict = b_eng_df.iloc[0].to_dict()
+            
+            if b_feat_dim == 536:
+                b_cand_df = extract_advanced_candidate_block_features(b_mat)
+                block_eng_dict.update(b_cand_df.iloc[0].to_dict())
+                b_combined_vals = np.hstack([b_eng_vals, b_cand_df.values[0]])
+            else:
+                b_combined_vals = b_eng_vals
+                
             if X_A is not None:
-                X_B = np.hstack([X_A, np.array([b_eng_vals], dtype=np.float32)])
+                X_B = np.hstack([X_A, np.array([b_combined_vals], dtype=np.float32)])
                 p_B = float(model_B.predict_proba(X_B)[0, 1])
             else:
                 p_B = float(die_dict.get('prob_Model_B', 0.5))
@@ -149,8 +196,17 @@ def predict_single_die_live(
             eng_keys = ['b_mean', 'b_std', 'b_min', 'b_max', 'b_p90', 'b_p95', 'b_p99', 'max_minus_100', 'mad_100', 'cnt_103', 'cnt_104', 'cnt_105', 'max_roll50', 'max_roll100', 'max_roll50_dev', 'max_roll100_dev', 'longest_run_104', 'num_runs_104', 'cluster_width', 'cluster_area']
             b_eng_vals = [float(die_dict.get(k, 100.0 if 'mean' in k or 'max' in k else 0.0)) for k in eng_keys]
             block_eng_dict = {k: v for k, v in zip(eng_keys, b_eng_vals)}
+            
+            if b_feat_dim == 536:
+                cand_keys = ['cnt_110', 'cnt_115', 'cnt_120', 'cluster_area_110', 'cluster_area_115', 'max_roll20', 'max_roll20_dev', 'max_roll20_rel', 'peak_prominence', 'top10_dev']
+                b_cand_vals = [float(die_dict.get(k, 0.0)) for k in cand_keys]
+                block_eng_dict.update({k: v for k, v in zip(cand_keys, b_cand_vals)})
+                b_combined_vals = np.array(b_eng_vals + b_cand_vals, dtype=np.float32)
+            else:
+                b_combined_vals = np.array(b_eng_vals, dtype=np.float32)
+                
             if X_A is not None:
-                X_B = np.hstack([X_A, np.array([b_eng_vals], dtype=np.float32)])
+                X_B = np.hstack([X_A, np.array([b_combined_vals], dtype=np.float32)])
                 p_B = float(model_B.predict_proba(X_B)[0, 1])
             else:
                 p_B = 0.5

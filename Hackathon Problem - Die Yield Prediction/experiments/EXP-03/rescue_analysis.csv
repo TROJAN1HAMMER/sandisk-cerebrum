@@ -1,0 +1,5 @@
+variant,fn_sent,fn_rescued,rescue_rate,tp_lost,net_tp_gain,new_fp,final_cascade_tp,final_cascade_fp,cascade_f1,cascade_precision,cascade_recall
+B0,166,46,27.71,5,41,43,390,57,0.519,0.8725,0.3693
+B1,166,46,27.71,5,41,38,390,53,0.5203,0.8804,0.3693
+B2,166,48,28.92,4,44,32,393,47,0.5254,0.8932,0.3722
+B3,166,50,30.12,6,44,34,393,50,0.5243,0.8871,0.3722

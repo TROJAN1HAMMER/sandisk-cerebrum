@@ -1,0 +1,24 @@
+{
+  "iterations": 1000,
+  "seed": 42,
+  "f1": {
+    "point_estimate": 0.5177,
+    "ci_95_lower": 0.4948,
+    "ci_95_upper": 0.5369
+  },
+  "f2": {
+    "point_estimate": 0.419,
+    "ci_95_lower": 0.3995,
+    "ci_95_upper": 0.4403
+  },
+  "mcc": {
+    "point_estimate": 0.5517,
+    "ci_95_lower": 0.526,
+    "ci_95_upper": 0.5701
+  },
+  "pr_auc": {
+    "point_estimate": 0.4808,
+    "ci_95_lower": 0.4465,
+    "ci_95_upper": 0.5089
+  }
+}

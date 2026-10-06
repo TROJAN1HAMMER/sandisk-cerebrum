@@ -1,0 +1,115 @@
+{
+  "experiment_id": "EXP-03B",
+  "status": "FROZEN",
+  "freeze_timestamp": "2026-10-06T22:15:00Z",
+  "source_experiment": "EXP-03",
+  "feature_counts": {
+    "B0_production": 526,
+    "B2_enhanced": 536,
+    "B3_enhanced_pruned": 532
+  },
+  "candidate_features": [
+    {
+      "feature_name": "cnt_110",
+      "derivation_type": "fixed",
+      "formula": "sum(x_k > 110.0)",
+      "description": "Block count exceeding 110.0 nominal reading",
+      "leakage_safe": true
+    },
+    {
+      "feature_name": "cnt_115",
+      "derivation_type": "fixed",
+      "formula": "sum(x_k > 115.0)",
+      "description": "Block count exceeding 115.0 nominal reading",
+      "leakage_safe": true
+    },
+    {
+      "feature_name": "cnt_120",
+      "derivation_type": "fixed",
+      "formula": "sum(x_k > 120.0)",
+      "description": "Block count exceeding 120.0 nominal reading",
+      "leakage_safe": true
+    },
+    {
+      "feature_name": "cluster_area_110",
+      "derivation_type": "fixed",
+      "formula": "sum(max(0, x_k - 110.0))",
+      "description": "Excess energy integral above 110.0",
+      "leakage_safe": true
+    },
+    {
+      "feature_name": "cluster_area_115",
+      "derivation_type": "fixed",
+      "formula": "sum(max(0, x_k - 115.0))",
+      "description": "Excess energy integral above 115.0",
+      "leakage_safe": true
+    },
+    {
+      "feature_name": "max_roll20",
+      "derivation_type": "fixed",
+      "formula": "max_k uniform_filter1d(x, 20)",
+      "description": "Peak 20-block rolling window moving average",
+      "leakage_safe": true
+    },
+    {
+      "feature_name": "max_roll20_dev",
+      "derivation_type": "fixed",
+      "formula": "max_roll20 - 100.0",
+      "description": "Peak 20-block moving average deviation from nominal center",
+      "leakage_safe": true
+    },
+    {
+      "feature_name": "max_roll20_rel",
+      "derivation_type": "fixed",
+      "formula": "max_roll20 - mean(x)",
+      "description": "Peak 20-block moving average deviation from die empirical mean",
+      "leakage_safe": true
+    },
+    {
+      "feature_name": "peak_prominence",
+      "derivation_type": "fixed",
+      "formula": "max(x) - percentile(x, 95)",
+      "description": "Peak reading excursion above 95th percentile within die",
+      "leakage_safe": true
+    },
+    {
+      "feature_name": "top10_dev",
+      "derivation_type": "fixed",
+      "formula": "mean(top10(x)) - mean(x)",
+      "description": "Average of top 10 block readings relative to die empirical mean",
+      "leakage_safe": true
+    },
+    {
+      "feature_name": "density_3x3_restored",
+      "derivation_type": "fixed",
+      "formula": "mean(old_label in 3x3 neighborhood)",
+      "description": "Restored pre-test spatial defect density in 3x3 window",
+      "leakage_safe": true
+    },
+    {
+      "feature_name": "density_5x5_restored",
+      "derivation_type": "fixed",
+      "formula": "mean(old_label in 5x5 neighborhood)",
+      "description": "Restored pre-test spatial defect density in 5x5 window",
+      "leakage_safe": true
+    }
+  ],
+  "pruned_features_in_B3": [
+    {
+      "feature_name": "longest_run_104",
+      "rationale": "0 gain, 0 splits in LightGBM; uniform Gaussian noise tail crossing"
+    },
+    {
+      "feature_name": "cluster_width",
+      "rationale": "0 gain, 0 splits in LightGBM; spans entire array for drifting dies"
+    },
+    {
+      "feature_name": "b_min",
+      "rationale": "0 gain, 0 splits in LightGBM; uninformative lower tail"
+    },
+    {
+      "feature_name": "mad_100",
+      "rationale": "1 split, 81 gain; redundant with b_std and b_mean"
+    }
+  ]
+}

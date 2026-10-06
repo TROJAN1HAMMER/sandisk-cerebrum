@@ -1,0 +1,4 @@
+model_pipeline,eval_population,f1,f2,mcc,precision,recall,pr_auc,roc_auc,fp,tp,compute_saved
+Production Baseline Cascade (EXP-01),Canonical Holdout (32 Wafers),0.5072,0.4,0.54,0.8138,0.3684,0.4677,0.799,89,389,0.8814
+Confirmed B2 Cascade (EXP-03B),Canonical Holdout (32 Wafers),0.5254,0.4213,0.5674,0.8932,0.3722,0.4777,0.7986,47,393,0.9402
+Final Validated B2 Cascade (EXP-04),Independent Ground-Truth (40 Wafers),0.5177,0.419,0.5517,0.8522,0.3717,0.4808,0.8078,89,513,0.9378

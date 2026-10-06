@@ -1,0 +1,7 @@
+policy,variant,fn_sent,fn_rescued,fn_missed,rescue_rate_pct,tp_sent,tp_lost,tp_preserved,net_tp_gain,new_fp,final_tp,final_fp
+Policy_B_Preferred,B0,166,46,120,27.71,15,5,10,41,43,390,57
+Policy_B_Preferred,B2,166,48,118,28.92,15,4,11,44,32,393,47
+Policy_B_Preferred,B3,166,50,116,30.12,15,6,9,44,34,393,50
+Policy_A_Baseline,B0,234,49,185,20.94,15,5,10,44,69,393,83
+Policy_A_Baseline,B2,234,53,181,22.65,15,4,11,49,59,398,74
+Policy_A_Baseline,B3,234,54,180,23.08,15,6,9,48,53,397,69

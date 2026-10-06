@@ -1,0 +1,41 @@
+{
+  "model_name": "Model A (Parametric + Spatial Baseline)",
+  "architecture": "LightGBM Booster (Gradient Boosted Decision Trees)",
+  "model_format": "Native LightGBM Text Model (model_A.txt) & Scikit-learn Pickle (model_A.pkl)",
+  "objective": "binary sigmoid:1",
+  "boosting_type": "gbdt",
+  "n_estimators": 150,
+  "learning_rate": 0.05,
+  "num_leaves": 63,
+  "max_depth": -1,
+  "min_child_samples": 20,
+  "subsample": 0.8,
+  "colsample_bytree": 0.7,
+  "scale_pos_weight": 10.0,
+  "reg_alpha": 0.0,
+  "reg_lambda": 0.0,
+  "random_state": 42,
+  "categorical_handling": "None (all 506 features treated as continuous numerical)",
+  "num_features": 506,
+  "feature_breakdown": {
+    "raw_parametric_features": 500,
+    "spatial_features": 6
+  },
+  "operational_threshold": 0.51,
+  "training_dataset": {
+    "source": "input/train.csv",
+    "filter": "old_label == 0",
+    "train_wafers": 128,
+    "train_samples": 126065,
+    "train_positives": 5463,
+    "train_failure_rate_pct": 4.3335
+  },
+  "validation_dataset": {
+    "source": "results/val_die_diagnostics.csv / canonical split",
+    "filter": "old_label == 0",
+    "validation_wafers": 32,
+    "validation_samples": 27972,
+    "validation_positives": 1056,
+    "validation_failure_rate_pct": 3.7752
+  }
+}
