@@ -1,4 +1,4 @@
-<![CDATA[<div align="center">
+<div align="center">
 
 # SANDisK CEREBRUM
 
@@ -99,87 +99,103 @@ A single monolithic model is not the best operational solution. Cerebrum therefo
 
 ## B3 Multimodal Architecture
 
-B3 is a **Multimodal Dual-Stream Cascade** that draws on three independent information sources:
+B3 is a **Multimodal Dual-Stream Cascade** — the current production architecture. It draws on three independent information sources through two parallel streams:
 
-| Source | Representation | Model |
+| Source | Representation | Stream |
 |:---|:---|:---|
-| Electrical / parametric measurements | 500 raw features + 7 PCA moment features | Model A (517 features) |
-| Spatial / reticle topology | 10 polar + density + edge features | Model A (517 features) |
-| Raw 2,000-point block signal | Full waveform input | 1D CNN (independent stream) |
-| Block physics summary | 11 burst/spike features | Model B (528 tabular features) |
+| Electrical / parametric measurements | 500 raw features + 7 PCA moment features | 📊 Tabular Intelligence |
+| Spatial / reticle topology | 10 polar + density + edge features | 📊 Tabular Intelligence |
+| Block physics summary | 11 burst/spike features | 📊 Tabular Intelligence |
+| Raw 2,000-point block signal | Full waveform input | 📡 Signal Intelligence |
 
-### High-Level Architecture
-
-```mermaid
-flowchart TB
-    subgraph INPUT["🔬 Raw Die Data"]
-        RAW["Electrical Measurements<br/>Spatial Coordinates<br/>2,000 Block Readings"]
-    end
-
-    subgraph STAGE1["⚡ Stage 1 — Fast Screening"]
-        MA["Model A<br/>517 Features • LightGBM"]
-    end
-
-    subgraph GATE["🚦 Cascade Gate"]
-        CG{"P_A < 0.250 or P_A > 0.550?"}
-    end
-
-    subgraph STAGE2["🔍 Stage 2 — Deep Inspection"]
-        direction LR
-        MB["Model B Tabular<br/>528 Features • LightGBM"]
-        CNN["1D CNN<br/>2,000 Blocks • PyTorch"]
-    end
-
-    subgraph FUSION["🧬 Late Probability Fusion"]
-        LF["P_final = 0.90 × P_tab + 0.10 × P_CNN"]
-    end
-
-    INPUT --> STAGE1
-    STAGE1 --> GATE
-    GATE -->|"✅ Confident<br/>96.05% of dies"| FAST["⚡ Fast Decision"]
-    GATE -->|"⚠️ Uncertain<br/>3.95% of dies"| STAGE2
-    STAGE2 --> FUSION
-    FUSION --> FINAL["🎯 Final Risk Score"]
-
-    style INPUT fill:#1e293b,stroke:#475569,color:#e2e8f0
-    style STAGE1 fill:#1e3a5f,stroke:#3b82f6,color:#e2e8f0
-    style GATE fill:#3b2f63,stroke:#8b5cf6,color:#e2e8f0
-    style STAGE2 fill:#1e3a3a,stroke:#14b8a6,color:#e2e8f0
-    style FUSION fill:#3b2f2f,stroke:#f59e0b,color:#e2e8f0
-```
-
-### Detailed Inference Flow
+### B3 Production Architecture
 
 ```mermaid
 flowchart TD
-    DIE["Raw Die Record<br/>500 parametric + coordinates + 2,000 blocks"] --> FE_A["Feature Engineering A<br/>500 electrical + 10 spatial + 7 PCA = 517"]
-    DIE --> BLOCKS["2,000 Raw Block Readings"]
+    subgraph INPUT["🔬 RAW DIE DATA"]
+        RAW["500 Electrical Measurements\n+ Die Coordinates\n+ 2,000 Block Readings"]
+    end
 
-    FE_A --> MODEL_A["Model A — LightGBM<br/>τ_A = 0.5100"]
-    MODEL_A --> PA["P_A probability"]
+    RAW --> SPLIT{" "}
 
-    PA --> GATE_CHECK{"Cascade Gate<br/>0.250 ≤ P_A ≤ 0.550?"}
+    subgraph TABULAR["📊 TABULAR INTELLIGENCE"]
+        FE_A["Feature Engineering\n500 electrical + 10 spatial + 7 PCA\n= 517 features"]
+        FE_A --> MA["⚡ Model A — LightGBM\nFast Screening · τ_A = 0.5100"]
+    end
 
-    GATE_CHECK -->|"P_A < 0.250"| PASS_FAST["✅ Fast Path: Pass"]
-    GATE_CHECK -->|"P_A > 0.550"| FAIL_FAST["🔴 Fast Path: Defect"]
+    subgraph SIGNAL["📡 SIGNAL INTELLIGENCE"]
+        BLOCKS["2,000 Raw Block Readings"]
+        BLOCKS --> NORM["Normalize\n(blocks − 100) / 15"]
+        NORM --> CNN["1D CNN — PyTorch\n3-layer ConvNet\nReceptive field > 100 blocks"]
+        CNN --> PCNN["P_CNN"]
+    end
 
-    GATE_CHECK -->|"Uncertain → Escalate"| FE_B["Feature Engineering B<br/>517 Model A features + 11 block burst = 528"]
-    GATE_CHECK -->|"Uncertain → Escalate"| CNN_PROC["CNN Preprocessing<br/>Normalize: (blocks - 100) / 15"]
+    SPLIT --> FE_A
+    SPLIT --> BLOCKS
 
-    FE_B --> MODEL_B["Model B Tabular — LightGBM<br/>→ P_tabular"]
-    CNN_PROC --> CNN["1D CNN — PyTorch<br/>3-layer ConvNet → P_CNN"]
-    BLOCKS --> CNN_PROC
+    subgraph CASCADE["🚦 SELECTIVE CASCADE"]
+        MA --> PA["P_A"]
+        PA --> GATE{"Cascade Gate\n0.250 ≤ P_A ≤ 0.550?"}
+        GATE -->|"P_A < 0.250 — Confident Pass\nP_A > 0.550 — Confident Defect"| FAST["⚡ FAST PATH\n96.05% of dies\n31,310 dies bypassed"]
+        GATE -->|"Uncertain\n3.95% of dies"| ESC["⚠️ ESCALATE"]
+    end
 
-    MODEL_B --> FUSE["Late Probability Fusion<br/>P_final = 0.90 × P_tab + 0.10 × P_CNN"]
-    CNN --> FUSE
+    subgraph DEEP["🔍 DEEP INSPECTION (Escalated Dies Only)"]
+        ESC --> FE_B["Feature Engineering B\n517 + 11 block burst = 528 features"]
+        FE_B --> MB["Model B Tabular — LightGBM\n528 features"]
+        MB --> PTAB["P_tabular"]
+    end
 
-    FUSE --> TAU_B{"τ_B = 0.5200?"}
-    TAU_B -->|"P_final < 0.5200"| PASS_DEEP["✅ Deep Pass"]
-    TAU_B -->|"P_final ≥ 0.5200"| FAIL_DEEP["🔴 Deep Defect"]
+    subgraph FUSION["🧬 MULTIMODAL FUSION"]
+        PTAB --> FUSE["Late Probability Fusion\nP_final = 0.90 × P_tabular + 0.10 × P_CNN"]
+        PCNN --> FUSE
+        FUSE --> DECISION{"τ_B = 0.5200"}
+    end
 
-    style GATE_CHECK fill:#4c1d95,stroke:#8b5cf6,color:#e2e8f0
-    style FUSE fill:#92400e,stroke:#f59e0b,color:#e2e8f0
+    subgraph OUTPUT["🎯 FINAL DECISION"]
+        FAST --> RESULT["Production Disposition"]
+        DECISION -->|"P_final < 0.5200"| PASS["✅ Pass"]
+        DECISION -->|"P_final ≥ 0.5200"| FAIL["🔴 Defect"]
+        PASS --> RESULT
+        FAIL --> RESULT
+    end
+
+    style INPUT fill:#0f172a,stroke:#334155,color:#e2e8f0
+    style TABULAR fill:#1e3a5f,stroke:#3b82f6,color:#e2e8f0
+    style SIGNAL fill:#1a3636,stroke:#14b8a6,color:#e2e8f0
+    style CASCADE fill:#2e1065,stroke:#8b5cf6,color:#e2e8f0
+    style DEEP fill:#1e293b,stroke:#6366f1,color:#e2e8f0
+    style FUSION fill:#451a03,stroke:#f59e0b,color:#e2e8f0
+    style OUTPUT fill:#14532d,stroke:#22c55e,color:#e2e8f0
+    style SPLIT fill:none,stroke:none
 ```
+
+> **Key design principle:** The CNN is an **independent signal stream** followed by **late probability fusion**. CNN features are **NOT** concatenated into Model B's tabular input. The two predictions are blended at the probability level:
+>
+> `P_final = 0.90 × P_tabular + 0.10 × P_CNN`
+
+---
+
+### B3 Operational Summary — Independent EXP-04
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  B3 INDEPENDENT VALIDATION (EXP-04)                                │
+│  32,598 dies  │  40 unseen wafers  │  1,380 actual defects         │
+├─────────────────────────────────────────────────────────────────────┤
+│  31,310 fast-path dies (Model A confident)                         │
+│   1,288 escalated dies (Model B + CNN deep inspection)             │
+│  96.05% secondary waveform/test & ingestion compute bypassed       │
+├─────────────────────────────────────────────────────────────────────┤
+│  Precision   87.67%  │  Recall     37.61%  │  F1     0.5264        │
+│  PR-AUC      0.5004  │  ROC-AUC    0.8270  │  MCC    0.5636        │
+│  Brier       0.0314  │  ECE        0.0590  │  F2     0.4246        │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+> **96.05%** refers to secondary waveform/test and ingestion compute bypass — the fraction of dies where the expensive CNN + Model B analysis is skipped. This is **NOT** a claim about total manufacturing cost savings.
+
+---
 
 ### Production Thresholds
 
@@ -190,9 +206,39 @@ flowchart TD
 | Gate upper | 0.550 | Above this → confident defect (fast path) |
 | `τ_B` | 0.5200 | Model B fused-probability decision threshold |
 | Tabular weight | 0.90 | Contribution of tabular Model B to fusion |
-| CNN weight | 0.10 | Contribution of CNN signal stream to fusion |
+| CNN weight | 0.10 | Contribution of 1D CNN signal stream to fusion |
 
-> **Key design principle:** The CNN is an **independent signal stream** followed by **late probability fusion**. CNN features are NOT concatenated into Model B's tabular input. The two predictions are blended at the probability level.
+### Detailed Inference Flow
+
+```mermaid
+flowchart TD
+    DIE["Raw Die Record"] --> FE_A["Feature Engineering A\n500 electrical + 10 spatial + 7 PCA = 517"]
+    DIE --> BLK["2,000 Raw Block Readings"]
+
+    FE_A --> MODEL_A["Model A — LightGBM\nτ_A = 0.5100"]
+    MODEL_A --> PA["P_A"]
+
+    PA --> GATE{"0.250 ≤ P_A ≤ 0.550?"}
+
+    GATE -->|"P_A < 0.250"| PASS_F["✅ Fast Pass"]
+    GATE -->|"P_A > 0.550"| FAIL_F["🔴 Fast Defect"]
+    GATE -->|"Uncertain"| FE_B["Feature Eng B\n517 + 11 block = 528"]
+    GATE -->|"Uncertain"| CNN_P["CNN Preprocess\n(blocks − 100) / 15"]
+
+    BLK --> CNN_P
+    FE_B --> MB["Model B Tabular\n→ P_tabular"]
+    CNN_P --> CNN2["1D CNN\n→ P_CNN"]
+
+    MB --> F["P_final = 0.90 P_tab + 0.10 P_CNN"]
+    CNN2 --> F
+
+    F --> T{"P_final ≥ 0.5200?"}
+    T -->|"No"| DP["✅ Deep Pass"]
+    T -->|"Yes"| DD["🔴 Deep Defect"]
+
+    style GATE fill:#4c1d95,stroke:#8b5cf6,color:#e2e8f0
+    style F fill:#92400e,stroke:#f59e0b,color:#e2e8f0
+```
 
 ---
 
@@ -421,47 +467,62 @@ The frontend includes human-readable hover explanations for technical ML concept
 
 ## System Architecture
 
+### Software Platform
+
 ```mermaid
 flowchart TB
-    subgraph CLIENT["Frontend — React + Vite + Tailwind"]
-        CC["Command Center"]
-        WI["Wafer Intelligence"]
-        CD["Cascade Diagnostics"]
-        YA["Yield Analytics"]
-        ML["Model Lab"]
-        FA["Forensic Audit"]
+    subgraph CLIENT["🖥️ CEREBRUM FRONTEND — React + Vite + Tailwind"]
+        direction LR
+        CC["Command\nCenter"]
+        WI["Wafer\nIntelligence"]
+        CD["Cascade\nDiagnostics"]
+        YA["Yield\nAnalytics"]
+        ML["Model\nLab"]
+        FA["Forensic\nAudit"]
     end
 
-    subgraph API["FastAPI Backend — Python"]
-        SYS["/system<br/>health • status"]
-        INF["/inference<br/>die • batch • demo<br/>block-attribution • tcn-forensics"]
-        MOD["/models<br/>release • metrics • benchmark<br/>candidates • probability • ROC/PR"]
-        WAF["/wafers<br/>list • summary • dies • hotspots"]
-        EVAL["/evaluation<br/>run • latest • simulate-policy"]
+    CLIENT <-->|"REST API"| BACKEND
+
+    subgraph BACKEND["⚙️ FastAPI Backend — Python"]
+        direction LR
+        SYS["/system\nhealth • status"]
+        INF["/inference\ndie • batch • demo\nblock-attribution\ntcn-forensics"]
+        MOD["/models\nrelease • metrics\nbenchmark • ROC/PR"]
+        WAF["/wafers\nlist • summary\ndies • hotspots"]
+        EVAL["/evaluation\nrun • simulate-policy"]
     end
 
-    subgraph ENGINE["B3 Cascade Engine"]
-        MA2["Model A<br/>517-feature LightGBM"]
-        MB2["Model B<br/>528-feature LightGBM"]
-        CNN2["1D CNN<br/>2,000-block PyTorch"]
-        TCN2["Multi-Scale TCN<br/>Forensics Only"]
-        FUSE2["Late Fusion<br/>0.90 tab + 0.10 CNN"]
+    BACKEND --> ENGINE
+
+    subgraph ENGINE["🧠 B3 INFERENCE ENGINE"]
+        MA2["Model A\n517-feature LightGBM"]
+        MA2 --> GATE2{"Cascade Gate\n[0.250, 0.550]"}
+        GATE2 -->|"Confident"| FAST2["⚡ Fast Path"]
+        GATE2 -->|"Uncertain"| DEEP2["Deep Inspection"]
+
+        subgraph DUAL["Dual-Stream Analysis"]
+            direction LR
+            MB2["Model B Tabular\n528 features"]
+            CNN3["1D CNN\n2,000 blocks"]
+        end
+
+        DEEP2 --> DUAL
+        DUAL --> FUSE2["Late Fusion\n0.90 tab + 0.10 CNN"]
     end
 
-    subgraph DATA["Data Layer"]
-        CSV["Canonical Dataset<br/>160 wafers • 154,037 dies"]
-        HOLD["Holdout Validation<br/>32 wafers • 27,972 dies"]
-        TEST["Independent Test<br/>40 wafers • 32,598 dies"]
-    end
+    ENGINE --> DATA
 
-    CLIENT <-->|"REST API"| API
-    API --> ENGINE
-    API --> DATA
-    ENGINE --> FUSE2
+    subgraph DATA["💾 Data Layer"]
+        direction LR
+        CSV["Canonical Dataset\n160 wafers • 154,037 dies"]
+        HOLD["Holdout Validation\n32 wafers • 27,972 dies"]
+        TEST["Independent Test\n40 wafers • 32,598 dies"]
+    end
 
     style CLIENT fill:#1e293b,stroke:#3b82f6,color:#e2e8f0
-    style API fill:#1a2332,stroke:#14b8a6,color:#e2e8f0
+    style BACKEND fill:#1a2332,stroke:#14b8a6,color:#e2e8f0
     style ENGINE fill:#1e1e2e,stroke:#8b5cf6,color:#e2e8f0
+    style DUAL fill:#1a2e2e,stroke:#14b8a6,color:#e2e8f0
     style DATA fill:#1e2e1e,stroke:#22c55e,color:#e2e8f0
 ```
 
@@ -819,7 +880,7 @@ cd frontend && npm run build
 
 ## Team
 
-Built by **Team TROJAN1HAMMER** for the SanDisk Hackathon — Die Yield Prediction Challenge.
+Built by **Team Pandas** for the SanDisk Hackathon — Die Yield Prediction Challenge.
 
 ---
 
@@ -828,4 +889,4 @@ Built by **Team TROJAN1HAMMER** for the SanDisk Hackathon — Die Yield Predicti
 **SANDisK CEREBRUM** — *Spend computation where uncertainty exists.*
 
 </div>
-]]>
+
