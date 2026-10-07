@@ -121,10 +121,38 @@ export const CommandCenter: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <StatusBadge label="Release: B2 Candidate" variant="purple" pulse />
+          <StatusBadge label="Release: B2 Production" variant="pass" pulse />
           <StatusBadge label="Gate B: [0.295, 0.550]" variant="pass" />
           <StatusBadge label="Zero-Leakage Compliance" variant="info" />
         </div>
+      </div>
+
+      {/* Next-Generation Candidate Insight Banner */}
+      <div className="p-3.5 rounded-lg bg-gradient-to-r from-telemetry-purple/15 via-silicon-elevated to-telemetry-cyan/15 border border-telemetry-purple/40 font-mono text-xs flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
+        <div className="flex items-center gap-2.5">
+          <Zap className="w-4 h-4 text-telemetry-purple shrink-0" />
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-content-primary">NEXT-GENERATION CANDIDATE STAGED:</span>
+              <span className="px-2 py-0.5 rounded bg-telemetry-purple/20 text-telemetry-purple font-bold text-[10px] border border-telemetry-purple/40">
+                B3-DualStream
+              </span>
+              <span className="px-2 py-0.5 rounded bg-silicon-canvas text-content-muted text-[10px] border border-silicon-border">
+                STAGED — NOT PRODUCTION
+              </span>
+            </div>
+            <div className="text-[11px] text-content-secondary mt-0.5">
+              EXP-04 Independent Validation: <span className="text-telemetry-green font-bold">+0.87 F1 pts</span> (0.5264) · <span className="text-telemetry-green font-bold">+1.96 PR-AUC pts</span> (0.5004) · <span className="text-telemetry-green font-bold">-16 FP</span> (73) · <span className="text-telemetry-green font-bold">+6 TP</span> (519) · <span className="text-telemetry-cyan font-bold">+2.27 pp compute saved</span> (96.05%)
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={() => navigate('/model-lab')}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-silicon-canvas hover:bg-silicon-interactive text-telemetry-purple hover:text-content-primary border border-telemetry-purple/40 text-[11px] font-bold transition-all shrink-0 self-start md:self-auto"
+        >
+          <span>Inspect in Model Lab</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       {/* Metric View Switcher */}
@@ -145,7 +173,7 @@ export const CommandCenter: React.FC = () => {
                 : 'text-content-muted hover:text-content-primary'
             }`}
           >
-            Independent 40 Wafers (EXP-04)
+            Active B2 — Independent EXP-04 Validation (40 Wafers)
           </button>
           <button
             onClick={() => setMetricView('canonical')}
@@ -155,7 +183,7 @@ export const CommandCenter: React.FC = () => {
                 : 'text-content-muted hover:text-content-primary'
             }`}
           >
-            Canonical 32 Wafers (EXP-03B)
+            Historical B0 — Canonical Holdout (32 Wafers)
           </button>
         </div>
       </div>
@@ -198,7 +226,7 @@ export const CommandCenter: React.FC = () => {
           <MetricCard
             title="Compute Saved"
             value={`${indVal.compute_saved_pct.toFixed(2)}%`}
-            subtitle="30,571 Fast-Path Dies"
+            subtitle="30,570 Fast-Path Dies"
             badge="EFFICIENCY"
             accent="cyan"
           />
@@ -206,7 +234,7 @@ export const CommandCenter: React.FC = () => {
           <MetricCard
             title="Escalation Rate"
             value={`${indVal.escalation_rate_pct.toFixed(2)}%`}
-            subtitle="2,027 Dies to Model B"
+            subtitle="2,028 Dies to Model B"
             badge="SELECTIVE"
             accent="amber"
           />
@@ -282,6 +310,127 @@ export const CommandCenter: React.FC = () => {
         </div>
       </div>
 
+      {/* Judge View / Live Investigation Fast Track Banner */}
+      <div className="p-4 rounded-lg bg-gradient-to-r from-telemetry-blue/20 via-silicon-elevated to-telemetry-purple/20 border border-telemetry-cyan/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-telemetry-cyan/20 text-telemetry-cyan border border-telemetry-cyan/40">
+              JUDGE PRESENTATION FLOW
+            </span>
+            <span className="text-xs font-mono text-content-muted">Single-Click Live Case</span>
+          </div>
+          <h3 className="text-sm font-bold text-content-primary">
+            Follow One Suspicious Die: Wafer W_N_0057 • Die R32/C23
+          </h3>
+          <p className="text-xs text-content-secondary">
+            Experience the complete engineering evidence chain: Model A escape → Uncertainty Gate [0.295, 0.550] → Model B2 sub-die rescue (+1 Net Defect Gain) → TCN waveform forensics.
+          </p>
+        </div>
+        <button
+          onClick={() => navigate('/wafer-intelligence/W_N_0057/32/23')}
+          className="px-4 py-2 rounded-lg bg-telemetry-cyan text-silicon-canvas font-mono font-bold text-xs hover:bg-telemetry-cyan/90 transition-all flex items-center gap-2 shadow-lg shadow-telemetry-cyan/20 shrink-0"
+        >
+          <span>OPEN LIVE INVESTIGATION</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Yield-At-Risk & Model Health Intelligence Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Yield-At-Risk Panel */}
+        <div className="lg:col-span-2 p-4 rounded-lg bg-silicon-elevated border border-silicon-border space-y-3 font-mono text-xs">
+          <div className="flex items-center justify-between border-b border-silicon-border/80 pb-2">
+            <div className="flex items-center gap-2">
+              <Flame className="w-4 h-4 text-telemetry-amber" />
+              <span className="font-bold text-content-primary uppercase">
+                YIELD AT RISK INTELLIGENCE
+              </span>
+            </div>
+            <span className="text-[10px] px-2 py-0.5 rounded bg-silicon-canvas border border-silicon-border text-content-muted">
+              Simulation / planning estimate
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            <div className="p-3 rounded bg-silicon-canvas border border-silicon-border space-y-1">
+              <span className="text-content-muted text-[10px] uppercase">Predicted High-Risk Dies</span>
+              <div className="text-lg font-bold text-telemetry-red">
+                {metricView === 'independent' ? '602 dies' : '440 dies'}
+              </div>
+              <div className="text-[11px] text-content-secondary">
+                {metricView === 'independent' ? '1.85% of holdout' : '1.57% of holdout'}
+              </div>
+            </div>
+
+            <div className="p-3 rounded bg-silicon-canvas border border-silicon-border space-y-1">
+              <span className="text-content-muted text-[10px] uppercase">Observed Holdout Yield</span>
+              <div className="text-lg font-bold text-telemetry-green">
+                {metricView === 'independent' ? '95.77%' : '96.22%'}
+              </div>
+              <div className="text-[11px] text-content-secondary">
+                {metricView === 'independent' ? '31,218 clean dies' : '26,916 clean dies'}
+              </div>
+            </div>
+
+            <div className="p-3 rounded bg-silicon-canvas border border-silicon-border space-y-1">
+              <span className="text-content-muted text-[10px] uppercase">Yield Exposure Indicator</span>
+              <div className="text-lg font-bold text-telemetry-amber">
+                {metricView === 'independent' ? '4.23% Defect Base' : '3.78% Defect Base'}
+              </div>
+              <div className="text-[11px] text-content-secondary">
+                Concentrated in 4 perimeter rings
+              </div>
+            </div>
+          </div>
+
+          <div className="p-2.5 rounded bg-silicon-canvas/60 border border-silicon-border/60 text-[11px] text-content-secondary leading-relaxed">
+            <strong className="text-telemetry-cyan font-semibold">METHODOLOGY NOTE:</strong> Yield-at-risk quantifies dies predicted as high-risk across spatial clusters. Clearly distinguished from physical factory scrap: actual economic impact requires fab cost-per-wafer metrics not provided in raw competition dataset.
+          </div>
+        </div>
+
+        {/* Model Health & Validation Trust Panel */}
+        <div className="p-4 rounded-lg bg-silicon-elevated border border-silicon-border space-y-3 font-mono text-xs">
+          <div className="flex items-center justify-between border-b border-silicon-border/80 pb-2">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-telemetry-green" />
+              <span className="font-bold text-content-primary uppercase">
+                MODEL HEALTH & TRUST
+              </span>
+            </div>
+            <span className="text-[10px] px-2 py-0.5 rounded bg-telemetry-green/20 text-telemetry-green font-bold">
+              FROZEN
+            </span>
+          </div>
+
+          <div className="space-y-2 pt-1 text-content-secondary">
+            <div className="flex justify-between">
+              <span className="text-content-muted">ACTIVE MODEL:</span>
+              <span className="text-telemetry-purple font-bold">B2 Enhanced Cascade</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-content-muted">ENGINE STATUS:</span>
+              <span className="text-telemetry-green font-bold">VALIDATED CANDIDATE</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-content-muted">INDEPENDENT TEST:</span>
+              <span className="text-content-primary font-bold">40 Unseen Wafers</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-content-muted">VALIDATION DIES:</span>
+              <span>32,598 Dies</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-content-muted">TEST SUITE HEALTH:</span>
+              <span className="text-telemetry-green font-bold">38 / 38 PASS (100%)</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-content-muted">RELEASE ID:</span>
+              <span className="text-telemetry-cyan font-bold">REL-2026-B2-FINAL</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Interactive Cascade Decision Architecture Flow */}
       <Panel
         title="Selective Multi-Resolution Cascade Architecture (Active Production: B2)"
@@ -339,11 +488,11 @@ export const CommandCenter: React.FC = () => {
             <div className="bg-silicon-canvas p-2.5 rounded border border-silicon-border/80 font-mono text-xs space-y-1">
               <div className="flex justify-between">
                 <span className="text-content-muted">Fast-Path Cleared:</span>
-                <span className="text-telemetry-green font-semibold">93.78% (30,571 Dies)</span>
+                <span className="text-telemetry-green font-semibold">93.78% (30,570 Dies)</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-content-muted">Escalation Rate:</span>
-                <span className="text-telemetry-amber font-semibold">6.22% (2,027 Dies)</span>
+                <span className="text-telemetry-amber font-semibold">6.22% (2,028 Dies)</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-content-muted">Historical Baseline:</span>

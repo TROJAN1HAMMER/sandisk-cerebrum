@@ -1,0 +1,11 @@
+Component,Type,F1,PR-AUC,ROC-AUC,Contribution
+Model A Tabular (506),Stage 1 Base,0.4907,0.4498,0.7934,+357 TP screening baseline
+Legacy Block Features (20),Stage 2 Block,0.4707,0.4659,0.8336,"+32 Net TP gain, rough cluster capture"
+Frozen B2 Anomaly Features (10),Stage 2 Anomaly,0.5254,0.4779,0.7986,"+45 Net TP gain, optimal precision balance"
+EXP-05 CNN Late Stacking,Late Fusion,0.5154,0.4657,0.795,"Degrades PR-AUC (-0.012), increases FP"
+EXP-06 XGBoost+CatBoost,Model A Ensemble,0.5149,0.4754,0.7941,"Degrades compute saved (94% -> 74%), +3x latency"
+EXP-07 Kurtosis+Skewness,Signal Statistical,0.519,0.4732,0.797,"Collinear redundancy, slight split dilution"
+EXP-07 Multi-Thresh Run-Length,Signal Clusters,0.5153,0.4755,0.7982,"High correlation with max_roll20, no new signal"
+EXP-07 FFT Spectral Descriptors,Signal Frequency,0.5203,0.476,0.7985,"Dominant freq useful, but downweighted in LightGBM"
+EXP-08 Multi-Scale Dilated TCN,Sequence Deep Learning,0.5229,0.4794,0.801,"+0.008 PR-AUC in sequence mode, neutral in cascade"
+EXP-09 Isotonic Calibration,Post-Processing,0.5217,0.4799,0.8012,"-97% ECE, -43% Brier, perfectly calibrated probabilities"

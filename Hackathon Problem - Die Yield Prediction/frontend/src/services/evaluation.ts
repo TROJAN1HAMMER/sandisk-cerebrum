@@ -9,4 +9,10 @@ export const evaluationService = {
 
   getLatestEvaluation: () =>
     request<EvaluationRunResponse>('/api/v1/evaluation/latest'),
+
+  simulatePolicy: (params: import('../types/models').PolicySimulationRequest) =>
+    request<import('../types/models').PolicySimulationResponse>('/api/v1/evaluation/simulate-policy', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    }),
 };

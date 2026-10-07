@@ -1,0 +1,9 @@
+Candidate,Num_Features,Train_Time_s,Latency_ms_per_die,Throughput_dies_sec,Escalation_Rate_Pct,Effective_Inference_Cost_ms
+B0_Control,536,25.2,0.0085,117647,5.9703,0.00711
+C1_Neighbourhood,543,25.37,0.00862,116070,5.9703,0.00711
+C2_SpatialTopology,542,25.17,0.00862,115984,5.9703,0.00711
+C3_WaferRelative,544,25.33,0.00868,115170,5.9703,0.00712
+C4_SignalGeometry,544,25.18,0.00875,114318,5.9703,0.00712
+C5_EvidenceAgreement,541,25.26,0.00858,116562,5.9703,0.00711
+C6_AllContextFamilies,570,26.58,0.00893,111970,5.9703,0.00713
+C7_StrongestSelected,544,25.28,0.00922,108416,5.9703,0.00715

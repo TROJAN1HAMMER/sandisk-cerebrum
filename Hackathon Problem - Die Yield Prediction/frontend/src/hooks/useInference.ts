@@ -30,3 +30,11 @@ export function useBlockAttribution(waferId: string, dieRow: number, dieCol: num
     enabled,
   });
 }
+
+export function useTcnForensics(waferId: string, dieRow: number, dieCol: number, enabled: boolean = true) {
+  return useQuery({
+    queryKey: ['inference', 'tcn-forensics', waferId, dieRow, dieCol],
+    queryFn: () => inferenceService.getTcnForensics(waferId, dieRow, dieCol),
+    enabled,
+  });
+}

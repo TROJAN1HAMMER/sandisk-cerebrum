@@ -52,7 +52,9 @@
         "fp": 89,
         "tn": 31129,
         "escalation_rate_pct": 6.22,
-        "compute_saved_pct": 93.78
+        "compute_saved_pct": 93.78,
+        "escalated_dies": 2028,
+        "fast_path_dies": 30570
       },
       "model_A_alone": {
         "f1": 0.5005,
@@ -65,8 +67,9 @@
       },
       "rescue_gain": {
         "net_tp_gain": 37,
-        "fn_reduction": 37,
         "fn_rescued": 41,
+        "tp_lost": 4,
+        "fn_reduction": 37,
         "fn_sent": 176,
         "rescue_rate_pct": 23.30,
         "additional_fp": 43

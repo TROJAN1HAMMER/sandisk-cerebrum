@@ -26,6 +26,8 @@ PREDICTIONS_PATH = RESULTS_DIR / "clean_model_B_predictions.csv"
 DEMO_SAMPLES_PATH = RESULTS_DIR / "demo_samples.json"
 RUNTIME_EVAL_JSON_PATH = RESULTS_DIR / "runtime_evaluation_latest.json"
 MODEL_RELEASE_PATH = MODELS_DIR / "model_release.json"
+CANDIDATES_META_PATH = MODELS_DIR / "candidates" / "candidate_metadata.json"
+CANDIDATES_EXP04_PATH = RESULTS_DIR / "teammate_candidate_exp04_results.json"
 
 class Settings(BaseModel):
     app_name: str = "SanDisk Cerebrum API"

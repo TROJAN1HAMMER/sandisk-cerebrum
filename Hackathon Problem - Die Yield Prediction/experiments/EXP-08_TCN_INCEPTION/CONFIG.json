@@ -1,0 +1,29 @@
+{
+  "experiment_id": "EXP-08",
+  "experiment_name": "Multi-Scale 1D Inception / Dilated TCN Evaluation",
+  "architectures": {
+    "Baseline_3Layer_CNN": {
+      "parameters": 41153,
+      "layers": 3,
+      "kernel_size": 15,
+      "latency_ms_per_die": 0.0207
+    },
+    "MultiScale_Dilated_TCN": {
+      "parameters": 39329,
+      "dilations": [
+        1,
+        2,
+        4
+      ],
+      "kernel_size": 3,
+      "training_time_s": 206.3,
+      "latency_ms_per_die": 0.0344
+    }
+  },
+  "evaluation_modes": {
+    "Mode_A": "Forensic / diagnostic sequence model only",
+    "Mode_B": "Late probability fusion with tabular Model B2"
+  },
+  "verdict_sequence_encoder": "TCN_SUPERIOR_SEQUENCE_ENCODER",
+  "verdict_cascade_promotion": "REJECTED_MODE_B_RETAIN_FROZEN_B2"
+}

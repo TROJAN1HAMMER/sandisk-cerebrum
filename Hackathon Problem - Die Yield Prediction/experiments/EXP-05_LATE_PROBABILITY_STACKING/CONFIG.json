@@ -1,0 +1,32 @@
+{
+  "experiment_id": "EXP-05",
+  "experiment_name": "Late Probability Stacking for Model B",
+  "baseline_model": "Frozen B2 Candidate (LightGBM 536 features)",
+  "signal_model": "1D CNN Block Encoder (cnn_1d_block_model.pt)",
+  "variants_evaluated": {
+    "Variant_A": {
+      "method": "Linear Probability Blend",
+      "alpha": 0.63
+    },
+    "Variant_B": {
+      "method": "Logit-Space Blend",
+      "alpha": 0.68
+    },
+    "Variant_C": {
+      "method": "Wafer-Grouped Logistic Regression Meta-Classifier",
+      "coefs": [
+        5.565049171447754,
+        8.213404655456543
+      ],
+      "intercept": -7.155817031860352
+    }
+  },
+  "decision_thresholds": {
+    "tau_A": 0.51,
+    "tau_B": 0.5376,
+    "gate_lower": 0.295,
+    "gate_upper": 0.55
+  },
+  "scientific_decision": "REJECTED_KEEP_FROZEN_B2",
+  "promotion_rationale": "Retain frozen B2 if late probability fusion does not demonstrate meaningful PR-AUC or F1 gain over B2 alone."
+}

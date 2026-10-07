@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { DiePoint } from '../../types/wafers';
+import { DiePoint, HotspotSummaryItem } from '../../types/wafers';
 import {
   ZoomIn,
   ZoomOut,
@@ -7,6 +7,7 @@ import {
   Maximize2,
   Layers,
   Sparkles,
+  Flame,
 } from 'lucide-react';
 
 export type HeatmapMode =
@@ -25,6 +26,9 @@ interface WaferMapProps {
   onHoverDie?: (die: DiePoint | null, mouseEvent?: React.MouseEvent) => void;
   activeMode: HeatmapMode;
   onChangeMode: (mode: HeatmapMode) => void;
+  hotspots?: HotspotSummaryItem[];
+  activeHotspotId?: string | null;
+  onSelectHotspot?: (hs: HotspotSummaryItem) => void;
   className?: string;
 }
 
@@ -35,9 +39,15 @@ export const WaferMap: React.FC<WaferMapProps> = ({
   onHoverDie,
   activeMode,
   onChangeMode,
+  hotspots = [],
+  activeHotspotId = null,
+  onSelectHotspot,
   className = '',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Hotspot overlay toggle
+  const [showHotspotsOverlay, setShowHotspotsOverlay] = useState<boolean>(true);
 
   // Zoom and pan transform state
   const [zoom, setZoom] = useState<number>(1);
@@ -294,8 +304,22 @@ export const WaferMap: React.FC<WaferMapProps> = ({
           >
             Error Triage
           </button>
-        </div>
 
+          {hotspots && hotspots.length > 0 && (
+            <button
+              onClick={() => setShowHotspotsOverlay(!showHotspotsOverlay)}
+              className={`px-2.5 py-1 rounded text-xs font-mono font-medium transition-colors flex items-center gap-1.5 ${
+                showHotspotsOverlay
+                  ? 'bg-telemetry-amber/20 text-telemetry-amber border border-telemetry-amber/40 font-semibold'
+                  : 'text-content-secondary hover:text-content-primary bg-silicon-interactive/50 border border-transparent'
+              }`}
+              title="Toggle spatial defect hotspot cluster overlays"
+            >
+              <Flame className="w-3.5 h-3.5 text-telemetry-amber" />
+              <span>Hotspots ({hotspots.length})</span>
+            </button>
+          )}
+        </div>
 
         {/* Zoom & View Controls */}
         <div className="flex items-center gap-1 bg-silicon-base p-0.5 rounded border border-silicon-border">
@@ -470,6 +494,86 @@ export const WaferMap: React.FC<WaferMapProps> = ({
               );
             })}
           </g>
+
+          {/* Spatial Hotspot Clusters Overlay Layer */}
+          {showHotspotsOverlay && hotspots && hotspots.length > 0 && (
+            <g id="wafer-hotspots-overlay">
+              {hotspots.map((hs) => {
+                const hsX = (hs.center_col - bounds.minC + 1) * PITCH + DIE_SIZE / 2;
+                const hsY = (hs.center_row - bounds.minR + 1) * PITCH + DIE_SIZE / 2;
+                const hsRadius = hs.radius_dies * PITCH;
+                const isActive = activeHotspotId === hs.hotspot_id;
+
+                return (
+                  <g
+                    key={hs.hotspot_id}
+                    className="cursor-pointer transition-all"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onSelectHotspot) onSelectHotspot(hs);
+                    }}
+                  >
+                    {/* Hotspot Cluster Outer Region Ring */}
+                    <circle
+                      cx={hsX}
+                      cy={hsY}
+                      r={hsRadius}
+                      fill={isActive ? 'rgba(245, 158, 11, 0.22)' : 'rgba(245, 158, 11, 0.08)'}
+                      stroke={isActive ? '#F59E0B' : 'rgba(245, 158, 11, 0.65)'}
+                      strokeWidth={isActive ? 2.5 : 1.5}
+                      strokeDasharray={isActive ? '6 3' : '4 4'}
+                    />
+
+                    {/* Epicenter Target Bullseye */}
+                    <circle
+                      cx={hsX}
+                      cy={hsY}
+                      r={isActive ? 6 : 4}
+                      fill="#F59E0B"
+                      stroke="#FFFFFF"
+                      strokeWidth={1.5}
+                    />
+                    <circle
+                      cx={hsX}
+                      cy={hsY}
+                      r={isActive ? 14 : 9}
+                      fill="none"
+                      stroke="#F59E0B"
+                      strokeWidth={1}
+                      strokeDasharray="2 2"
+                      opacity={0.8}
+                    />
+
+                    {/* Hotspot Label Tag */}
+                    <g transform={`translate(${hsX}, ${hsY - hsRadius - 12})`}>
+                      <rect
+                        x={-55}
+                        y={-10}
+                        width={110}
+                        height={18}
+                        rx={4}
+                        fill="#0E131F"
+                        stroke={isActive ? '#F59E0B' : 'rgba(245, 158, 11, 0.5)'}
+                        strokeWidth={1}
+                      />
+                      <text
+                        x={0}
+                        y={2}
+                        textAnchor="middle"
+                        fill="#F59E0B"
+                        fontSize="9"
+                        fontFamily="monospace"
+                        fontWeight="bold"
+                        dominantBaseline="middle"
+                      >
+                        {hs.region_name.length > 18 ? `${hs.region_name.slice(0, 16)}…` : hs.region_name}
+                      </text>
+                    </g>
+                  </g>
+                );
+              })}
+            </g>
+          )}
         </svg>
 
         {/* Floating Die Tooltip Overlay */}

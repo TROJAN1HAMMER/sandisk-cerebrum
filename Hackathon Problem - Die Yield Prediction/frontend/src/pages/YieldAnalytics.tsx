@@ -6,6 +6,8 @@ import {
   useProbabilityDistribution,
   useRocPrCurves,
   useHighRiskDies,
+  useModelRelease,
+  useModelCandidates,
 } from '../hooks/useModels';
 import { useWafers } from '../hooks/useWafers';
 import { MetricCard } from '../components/ui/MetricCard';
@@ -36,6 +38,7 @@ import {
 } from 'lucide-react';
 import { HighRiskDieRecord } from '../types/models';
 import { WaferSummaryItem } from '../types/wafers';
+import { PolicySimulator } from '../components/inference/PolicySimulator';
 
 export const YieldAnalytics: React.FC = () => {
   const navigate = useNavigate();
@@ -46,9 +49,12 @@ export const YieldAnalytics: React.FC = () => {
   const [cascadePathFilter, setCascadePathFilter] = useState<'all' | 'fast_path' | 'escalated'>('all');
   const [waferSortBy, setWaferSortBy] = useState<'yield' | 'defect_rate' | 'failures' | 'escalation' | 'dies'>('yield');
   const [failureViewMode, setFailureViewMode] = useState<'actual' | 'predicted' | 'difference'>('actual');
+  const [comparisonDataset, setComparisonDataset] = useState<'exp04' | 'holdout'>('exp04');
 
   // Authoritative queries
   const { data: metrics, isLoading: metricsLoading, error: metricsError, refetch: refetchMetrics } = useModelMetrics();
+  const { data: release } = useModelRelease();
+  const { data: candidates } = useModelCandidates();
   const { data: benchmark, isLoading: benchLoading } = useModelBenchmark();
   const { data: probDist, isLoading: distLoading } = useProbabilityDistribution();
   const { data: curves, isLoading: curvesLoading } = useRocPrCurves();
@@ -297,14 +303,254 @@ export const YieldAnalytics: React.FC = () => {
         </div>
       </div>
 
+      {/* Interactive What-If Inspection Policy Simulator */}
+      <PolicySimulator />
+
+      {/* Production B2 vs Candidate B3 Dual-Namespace Comparison */}
+      <Panel
+        title="Production B2 vs. Candidate B3 Policy Comparison (Dual-Namespace Isolation)"
+        subtitle="Independent multi-lot qualification assessment • Zero production contamination guarantee"
+      >
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg bg-silicon-canvas/80 border border-silicon-border">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono font-bold text-content-primary uppercase flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-telemetry-cyan" />
+                BENCHMARK POPULATION:
+              </span>
+              <div className="flex rounded bg-silicon-elevated p-0.5 border border-silicon-border text-xs font-mono">
+                <button
+                  onClick={() => setComparisonDataset('exp04')}
+                  className={`px-3 py-1 rounded transition-colors ${
+                    comparisonDataset === 'exp04'
+                      ? 'bg-telemetry-cyan text-silicon-base font-bold'
+                      : 'text-content-secondary hover:text-content-primary'
+                  }`}
+                >
+                  EXP-04 Independent (40 Wafers / 32,598 Dies)
+                </button>
+                <button
+                  onClick={() => setComparisonDataset('holdout')}
+                  className={`px-3 py-1 rounded transition-colors ${
+                    comparisonDataset === 'holdout'
+                      ? 'bg-telemetry-cyan text-silicon-base font-bold'
+                      : 'text-content-secondary hover:text-content-primary'
+                  }`}
+                >
+                  Canonical Holdout (32 Wafers / 27,972 Dies)
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-mono">
+              <span className="px-2 py-0.5 rounded bg-telemetry-green/10 text-telemetry-green border border-telemetry-green/30 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                Isolated Namespaces
+              </span>
+              <span className="px-2 py-0.5 rounded bg-silicon-border text-content-secondary border border-silicon-border">
+                Zero Leaking
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Column 1: Production B2 */}
+            <div className="p-4 rounded-lg bg-silicon-canvas border-2 border-telemetry-green/40 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-telemetry-green/20 text-telemetry-green border border-telemetry-green/40 font-bold">
+                    ACTIVE PRODUCTION STANDARD
+                  </span>
+                  <h3 className="text-sm font-bold text-content-primary mt-1">B2 — Selective Cascade</h3>
+                  <div className="text-[11px] font-mono text-content-muted">Namespace: production.b2 • 506 A / 536 B Features</div>
+                </div>
+                <div className="text-right text-xs font-mono">
+                  <div className="text-content-secondary">Gate: [0.295, 0.550]</div>
+                  <div className="text-content-muted">τA=0.5100 | τB=0.5376</div>
+                </div>
+              </div>
+
+              {comparisonDataset === 'exp04' ? (
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-silicon-border/60 font-mono text-xs">
+                  <div className="p-2 rounded bg-silicon-elevated/70">
+                    <span className="text-[10px] text-content-muted block">F1 SCORE</span>
+                    <span className="text-sm font-bold text-content-primary">0.5177</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70">
+                    <span className="text-[10px] text-content-muted block">PRECISION</span>
+                    <span className="text-sm font-bold text-telemetry-green">85.22%</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70">
+                    <span className="text-[10px] text-content-muted block">RECALL</span>
+                    <span className="text-sm font-bold text-content-primary">37.17%</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70">
+                    <span className="text-[10px] text-content-muted block">PR-AUC</span>
+                    <span className="text-sm font-bold text-content-primary">0.4808</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70">
+                    <span className="text-[10px] text-content-muted block">CONFUSION</span>
+                    <span className="text-xs font-semibold text-content-primary">513 TP / 89 FP</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70">
+                    <span className="text-[10px] text-content-muted block">COMPUTE SAVED</span>
+                    <span className="text-sm font-bold text-telemetry-cyan">93.78%</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-silicon-border/60 font-mono text-xs">
+                  <div className="p-2 rounded bg-silicon-elevated/70">
+                    <span className="text-[10px] text-content-muted block">F1 SCORE</span>
+                    <span className="text-sm font-bold text-content-primary">0.5254</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70">
+                    <span className="text-[10px] text-content-muted block">PRECISION</span>
+                    <span className="text-sm font-bold text-telemetry-green">89.32%</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70">
+                    <span className="text-[10px] text-content-muted block">RECALL</span>
+                    <span className="text-sm font-bold text-content-primary">37.22%</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70">
+                    <span className="text-[10px] text-content-muted block">PR-AUC</span>
+                    <span className="text-sm font-bold text-content-primary">0.4777</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70">
+                    <span className="text-[10px] text-content-muted block">CONFUSION</span>
+                    <span className="text-xs font-semibold text-content-primary">393 TP / 47 FP</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70">
+                    <span className="text-[10px] text-content-muted block">COMPUTE SAVED</span>
+                    <span className="text-sm font-bold text-telemetry-cyan">94.02%</span>
+                  </div>
+                </div>
+              )}
+              <div className="text-[11px] text-content-muted leading-relaxed">
+                Active fab baseline: Zero PyTorch inference dependency in primary path. Proven 85.22% to 89.32% precision with ultra-low false alarm rate.
+              </div>
+            </div>
+
+            {/* Column 2: Candidate B3-DualStream */}
+            <div className="p-4 rounded-lg bg-silicon-canvas border-2 border-telemetry-purple/40 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-telemetry-purple/20 text-telemetry-purple border border-telemetry-purple/40 font-bold">
+                    VALIDATED STAGED CANDIDATE
+                  </span>
+                  <h3 className="text-sm font-bold text-content-primary mt-1">B3-DualStream (Tabular + 1D-CNN)</h3>
+                  <div className="text-[11px] font-mono text-content-muted">Namespace: candidate.b3_dualstream • 517 A / 528 B Tab + 2,000-Block CNN</div>
+                </div>
+                <div className="text-right text-xs font-mono">
+                  <div className="text-content-secondary">Gate: [0.250, 0.550]</div>
+                  <div className="text-content-muted">τA=0.5100 | τB=0.5200</div>
+                </div>
+              </div>
+
+              {comparisonDataset === 'exp04' ? (
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-silicon-border/60 font-mono text-xs">
+                  <div className="p-2 rounded bg-silicon-elevated/70 border border-telemetry-purple/30">
+                    <span className="text-[10px] text-content-muted block">F1 SCORE</span>
+                    <span className="text-sm font-bold text-telemetry-purple">0.5264</span>
+                    <span className="text-[10px] text-telemetry-green block font-bold">+0.0087 Δ</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70 border border-telemetry-purple/30">
+                    <span className="text-[10px] text-content-muted block">PRECISION</span>
+                    <span className="text-sm font-bold text-telemetry-green">87.67%</span>
+                    <span className="text-[10px] text-telemetry-green block font-bold">+2.45 pp Δ</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70 border border-telemetry-purple/30">
+                    <span className="text-[10px] text-content-muted block">RECALL</span>
+                    <span className="text-sm font-bold text-content-primary">37.61%</span>
+                    <span className="text-[10px] text-telemetry-green block font-bold">+0.44 pp Δ</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70 border border-telemetry-purple/30">
+                    <span className="text-[10px] text-content-muted block">PR-AUC</span>
+                    <span className="text-sm font-bold text-telemetry-cyan">0.5004</span>
+                    <span className="text-[10px] text-telemetry-green block font-bold">+0.0196 Δ</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70 border border-telemetry-purple/30">
+                    <span className="text-[10px] text-content-muted block">CONFUSION</span>
+                    <span className="text-xs font-semibold text-content-primary">519 TP / 73 FP</span>
+                    <span className="text-[10px] text-telemetry-green block font-bold">+6 TP / -16 FP</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70 border border-telemetry-purple/30">
+                    <span className="text-[10px] text-content-muted block">COMPUTE SAVED</span>
+                    <span className="text-sm font-bold text-telemetry-cyan">96.05%</span>
+                    <span className="text-[10px] text-telemetry-green block font-bold">+2.27 pp Δ</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-silicon-border/60 font-mono text-xs">
+                  <div className="p-2 rounded bg-silicon-elevated/70 border border-telemetry-purple/30">
+                    <span className="text-[10px] text-content-muted block">F1 SCORE</span>
+                    <span className="text-sm font-bold text-telemetry-purple">0.5291</span>
+                    <span className="text-[10px] text-telemetry-green block font-bold">+0.0037 Δ</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70 border border-telemetry-amber/30">
+                    <span className="text-[10px] text-content-muted block">PRECISION</span>
+                    <span className="text-sm font-bold text-telemetry-amber">81.78%</span>
+                    <span className="text-[10px] text-telemetry-red block font-bold">-7.54 pp Δ</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70 border border-telemetry-purple/30">
+                    <span className="text-[10px] text-content-muted block">RECALL</span>
+                    <span className="text-sm font-bold text-content-primary">39.11%</span>
+                    <span className="text-[10px] text-telemetry-green block font-bold">+1.89 pp Δ</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70 border border-telemetry-purple/30">
+                    <span className="text-[10px] text-content-muted block">PR-AUC</span>
+                    <span className="text-sm font-bold text-telemetry-cyan">0.4967</span>
+                    <span className="text-[10px] text-telemetry-green block font-bold">+0.0190 Δ</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70 border border-telemetry-amber/30">
+                    <span className="text-[10px] text-content-muted block">CONFUSION</span>
+                    <span className="text-xs font-semibold text-content-primary">413 TP / 92 FP</span>
+                    <span className="text-[10px] text-telemetry-amber block font-bold">+20 TP / +45 FP</span>
+                  </div>
+                  <div className="p-2 rounded bg-silicon-elevated/70 border border-telemetry-purple/30">
+                    <span className="text-[10px] text-content-muted block">COMPUTE SAVED</span>
+                    <span className="text-sm font-bold text-telemetry-cyan">94.68%</span>
+                    <span className="text-[10px] text-telemetry-green block font-bold">+0.66 pp Δ</span>
+                  </div>
+                </div>
+              )}
+              <div className="text-[11px] text-content-muted leading-relaxed">
+                Staged candidate: 10% late probability fusion with 1D-CNN. While EXP-04 yields +0.0087 F1 and 16 fewer FPs, Canonical Holdout exhibits +45 false alarms (92 vs 47 FP), justifying controlled staging rather than automatic production promotion.
+              </div>
+            </div>
+          </div>
+
+          {/* Experimental High-Recall Policy strip */}
+          <div className="p-3 rounded bg-silicon-elevated/80 border border-silicon-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-mono">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-telemetry-amber/20 text-telemetry-amber border border-telemetry-amber/40">
+                  EXPERIMENTAL POLICY
+                </span>
+                <span className="font-bold text-content-primary">High-Recall Inspection Policy</span>
+                <span className="text-content-muted">• NOT Production Standard</span>
+              </div>
+              <div className="text-[11px] text-content-secondary mt-0.5">
+                Configuration: Gate [0.20, 0.50], τB = 0.50 | Target: Maximize defect capture in safety-critical lots
+              </div>
+            </div>
+            <div className="flex items-center gap-3 text-[11px] text-content-primary shrink-0">
+              <span>F1: <strong className="text-telemetry-purple">0.5271</strong></span>
+              <span>Recall: <strong className="text-telemetry-green">38.77%</strong></span>
+              <span>Prec: <strong>82.31%</strong></span>
+              <span>TP/FP: <strong>535 / 115</strong></span>
+              <span>Compute: <strong>92.63%</strong></span>
+            </div>
+          </div>
+        </div>
+      </Panel>
+
       {/* 3. Executive Metrics Grid (12 Cards bound directly to authoritative API) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="text-xs font-mono uppercase tracking-wider text-content-muted font-semibold">
-            EXECUTIVE METRICS (CANONICAL BACKEND VALUES)
+            HISTORICAL B0 — CANONICAL HOLDOUT (32 WAFERS, 27,972 DIES)
           </div>
           <div className="text-[11px] font-mono text-content-muted">
-            Source: /api/v1/models/metrics
+            Source: /api/v1/models/metrics (Holdout Baseline)
           </div>
         </div>
 

@@ -38,6 +38,8 @@ class CascadeGateMetricsItem(BaseModel):
     delta_vs_model_A: Optional[Dict[str, Any]] = None
 
 class ModelMetricsResponse(BaseModel):
+    evaluation_scope: str = "Historical B0 — Canonical Holdout"
+    dataset_label: str = "Canonical Holdout (32 Wafers, 27,972 Dies)"
     metadata: Dict[str, Any]
     model_A: Dict[str, Any]
     model_B: Dict[str, Any]
@@ -61,3 +63,19 @@ class EvaluationRunResponse(BaseModel):
     cascade_gate_B: Dict[str, Any]
     cascade_gate_C: Dict[str, Any]
     integrity_checks: Dict[str, Any]
+
+class PolicySimulationRequest(BaseModel):
+    tau_A: float = 0.5100
+    gate_lower: float = 0.295
+    gate_upper: float = 0.550
+    tau_B: float = 0.5376
+    secondary_budget_pct: Optional[float] = None
+
+class PolicySimulationResponse(BaseModel):
+    status: str = "SIMULATION_COMPLETED"
+    simulation_mode: bool = True
+    production_policy_modified: bool = False
+    disclaimer: str = "WHAT-IF SIMULATION ONLY — Does not modify production policy configuration."
+    parameters: Dict[str, Any]
+    simulated_metrics: Dict[str, Any]
+    baseline_comparison: Dict[str, Any]

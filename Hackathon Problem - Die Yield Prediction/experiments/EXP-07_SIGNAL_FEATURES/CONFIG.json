@@ -1,0 +1,73 @@
+{
+  "experiment_id": "EXP-07",
+  "experiment_name": "Advanced 2,000-Block Signal Features",
+  "baseline_features": 536,
+  "feature_families_evaluated": {
+    "statistical_moments": [
+      "sig_kurtosis",
+      "sig_skewness",
+      "sig_variance",
+      "sig_rms",
+      "sig_mad",
+      "sig_peak_to_rms"
+    ],
+    "run_length_clusters": [
+      "rl_longest_103",
+      "rl_num_runs_103",
+      "rl_mean_len_103",
+      "rl_median_len_103",
+      "rl_p95_len_103",
+      "rl_density_103",
+      "rl_longest_104",
+      "rl_num_runs_104",
+      "rl_mean_len_104",
+      "rl_median_len_104",
+      "rl_p95_len_104",
+      "rl_density_104",
+      "rl_longest_105",
+      "rl_num_runs_105",
+      "rl_mean_len_105",
+      "rl_median_len_105",
+      "rl_p95_len_105",
+      "rl_density_105",
+      "rl_longest_110",
+      "rl_num_runs_110",
+      "rl_mean_len_110",
+      "rl_median_len_110",
+      "rl_p95_len_110",
+      "rl_density_110",
+      "rl_longest_115",
+      "rl_num_runs_115",
+      "rl_mean_len_115",
+      "rl_median_len_115",
+      "rl_p95_len_115",
+      "rl_density_115"
+    ],
+    "fft_spectral_descriptors": [
+      "fft_dominant_freq",
+      "fft_spectral_energy",
+      "fft_spectral_centroid",
+      "fft_spectral_entropy",
+      "fft_low_energy",
+      "fft_high_energy",
+      "fft_peak_mag",
+      "fft_band_ratio"
+    ]
+  },
+  "ablation_variants": [
+    "B2_Baseline (536)",
+    "B2_plus_Statistical (542)",
+    "B2_plus_RunLength (566)",
+    "B2_plus_FFT (544)",
+    "B2_plus_All (580)"
+  ],
+  "decision_thresholds": {
+    "tau_A": 0.51,
+    "tau_B": 0.5376
+  },
+  "routing_gate": {
+    "lower": 0.295,
+    "upper": 0.55
+  },
+  "scientific_decision": "REJECTED_KEEP_FROZEN_B2"
+}

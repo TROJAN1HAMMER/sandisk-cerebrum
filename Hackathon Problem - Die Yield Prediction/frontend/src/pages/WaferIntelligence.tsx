@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { useWafers, useWaferSummary, useWaferDies } from '../hooks/useWafers';
-import { DiePoint } from '../types/wafers';
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useWafers, useWaferSummary, useWaferDies, useWaferHotspots } from '../hooks/useWafers';
+import { DiePoint, HotspotSummaryItem } from '../types/wafers';
 import { WaferMap, HeatmapMode } from '../components/wafers/WaferMap';
 import { DieInspector } from '../components/wafers/DieInspector';
 import { CrossWaferCompare } from '../components/wafers/CrossWaferCompare';
@@ -35,6 +35,7 @@ export const WaferIntelligence: React.FC = () => {
     col?: string;
   }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
 
   // Load all 32 canonical validation wafers
@@ -74,9 +75,11 @@ export const WaferIntelligence: React.FC = () => {
     3000
   );
   const { data: waferSummary } = useWaferSummary(selectedWaferId);
+  const { data: hotspotsData } = useWaferHotspots(selectedWaferId);
 
   // Selected die state
   const [selectedDie, setSelectedDie] = useState<DiePoint | null>(null);
+  const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null);
   const [activeHeatmapMode, setActiveHeatmapMode] = useState<HeatmapMode>('status');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -90,6 +93,12 @@ export const WaferIntelligence: React.FC = () => {
       const matched = waferData.dies.find((d) => d.die_row === r && d.die_col === c);
       if (matched) {
         setSelectedDie(matched);
+        setTimeout(() => {
+          document.getElementById('selected-die-inspector')?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+        }, 200);
       }
     }
   }, [waferData?.dies, routeRow, routeCol]);
@@ -98,17 +107,44 @@ export const WaferIntelligence: React.FC = () => {
   const handleSelectWafer = (newWaferId: string) => {
     setSelectedWaferId(newWaferId);
     setSelectedDie(null);
+    setActiveHotspotId(null);
     setSearchQuery('');
     setSearchError(null);
     navigate(`/wafer-intelligence/${newWaferId}`);
   };
 
-  // Handle die selection
+  // Handle die selection with search params preservation and auto-scroll
   const handleSelectDie = (die: DiePoint) => {
     setSelectedDie(die);
-    navigate(`/wafer-intelligence/${die.wafer_id}/${die.die_row}/${die.die_col}`, {
+    const search = location.search;
+    navigate(`/wafer-intelligence/${die.wafer_id}/${die.die_row}/${die.die_col}${search}`, {
       replace: true,
     });
+    setTimeout(() => {
+      document.getElementById('selected-die-inspector')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }, 100);
+  };
+
+  // Handle hotspot selection & centering
+  const handleSelectHotspot = (hs: HotspotSummaryItem) => {
+    setActiveHotspotId(hs.hotspot_id);
+    if (!waferData?.dies) return;
+    const hotspotDies = waferData.dies.filter(
+      (d) => Math.hypot(d.die_row - hs.center_row, d.die_col - hs.center_col) <= hs.radius_dies
+    );
+    const targetDie =
+      hotspotDies.find((d) => d.prob_Cascade_B >= 0.50) ||
+      hotspotDies.find((d) => d.die_row === hs.center_row && d.die_col === hs.center_col) ||
+      waferData.dies.find((d) => d.die_row === hs.center_row && d.die_col === hs.center_col) ||
+      hotspotDies[0] ||
+      waferData.dies[0];
+
+    if (targetDie) {
+      handleSelectDie(targetDie);
+    }
   };
 
   // Handle die search with multi-format coordinate parsing
@@ -178,10 +214,18 @@ export const WaferIntelligence: React.FC = () => {
       if (filterMode === 'recovered') return d.recovered_FN_Gate_B === 1;
       if (filterMode === 'fn') return d.actual_label === 1 && d.decision_Cascade_B === 0;
       if (filterMode === 'fp') return d.actual_label === 0 && d.decision_Cascade_B === 1;
+      if (filterMode === 'hotspot' && hotspotsData?.hotspots && hotspotsData.hotspots.length > 0) {
+        const targetClusters = activeHotspotId
+          ? hotspotsData.hotspots.filter((h) => h.hotspot_id === activeHotspotId)
+          : hotspotsData.hotspots;
+        return targetClusters.some(
+          (h) => Math.hypot(d.die_row - h.center_row, d.die_col - h.center_col) <= h.radius_dies
+        );
+      }
 
       return true;
     });
-  }, [waferData?.dies, filterMode, minProbFilter]);
+  }, [waferData?.dies, filterMode, minProbFilter, hotspotsData?.hotspots, activeHotspotId]);
 
   // Quick Action: Inspect Highest Risk Die
   const handleInspectHighestRisk = () => {
@@ -402,6 +446,9 @@ export const WaferIntelligence: React.FC = () => {
             { id: 'recovered', label: 'Rescued FN' },
             { id: 'fn', label: 'Missed FN' },
             { id: 'fp', label: 'False Alarms (FP)' },
+            ...(hotspotsData?.hotspots && hotspotsData.hotspots.length > 0
+              ? [{ id: 'hotspot', label: `🔥 Hotspots (${hotspotsData.hotspots.length})` }]
+              : []),
           ].map((f) => (
             <button
               key={f.id}
@@ -486,7 +533,96 @@ export const WaferIntelligence: React.FC = () => {
             onSelectDie={handleSelectDie}
             activeMode={activeHeatmapMode}
             onChangeMode={setActiveHeatmapMode}
+            hotspots={hotspotsData?.hotspots || []}
+            activeHotspotId={activeHotspotId}
+            onSelectHotspot={handleSelectHotspot}
           />
+
+          {/* Persistent Selected Die Inspector */}
+          {selectedDie && (
+            <div id="selected-die-inspector" className="scroll-mt-4">
+              <DieInspector
+                die={selectedDie}
+                allDies={waferData.dies}
+                onSelectDie={handleSelectDie}
+                onClose={() => setSelectedDie(null)}
+              />
+            </div>
+          )}
+
+          {/* Spatial Hotspot Clusters Intelligence Panel */}
+          {hotspotsData?.hotspots && hotspotsData.hotspots.length > 0 && (
+            <Panel
+              title="Spatial Hotspot Intelligence & Risk Partitioning"
+              subtitle={`Wafer ${selectedWaferId}: ${hotspotsData.total_high_risk_dies} high-risk dies categorized into ${hotspotsData.hotspots_count} physical reticle zones.`}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {hotspotsData.hotspots.map((hs) => (
+                  <div
+                    key={hs.hotspot_id}
+                    onClick={() => handleSelectHotspot(hs)}
+                    className={`p-4 rounded-lg bg-silicon-elevated border space-y-3 font-mono text-xs cursor-pointer transition-all ${
+                      activeHotspotId === hs.hotspot_id
+                        ? 'border-telemetry-amber ring-2 ring-telemetry-amber bg-silicon-interactive/80 shadow-lg'
+                        : 'border-silicon-border hover:border-telemetry-amber/60 hover:bg-silicon-elevated/90'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-content-primary flex items-center gap-1.5 text-sm">
+                        <Flame className="w-4 h-4 text-telemetry-amber" />
+                        {hs.region_name}
+                      </span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-telemetry-amber/20 text-telemetry-amber border border-telemetry-amber/40">
+                        R = {hs.radius_dies} DIES
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 text-content-secondary text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-content-muted">Morphology:</span>
+                        <span className="text-telemetry-cyan font-semibold">{hs.primary_morphology}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-content-muted">High-Risk Dies in Cluster:</span>
+                        <span className="text-telemetry-red font-bold">{hs.high_risk_die_count} of {hs.die_count} dies</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-content-muted">Mean Risk Probability:</span>
+                        <span className="text-content-primary font-bold">{(hs.mean_risk_prob * 100).toFixed(1)}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-content-muted">Centroid Coordinates:</span>
+                        <span className="text-telemetry-purple font-bold">Row {hs.center_row}, Col {hs.center_col}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-content-muted">Observed Defects:</span>
+                        <span className="text-telemetry-amber font-semibold">{hs.observed_defect_count} ground-truth defects</span>
+                      </div>
+                    </div>
+
+                    <div className="p-2 rounded bg-silicon-canvas/80 border border-silicon-border/60 text-[11px] text-content-secondary leading-relaxed">
+                      <span className="text-telemetry-cyan font-semibold mr-1">SIGNATURE:</span>
+                      {hs.suspicious_signature}
+                    </div>
+
+                    {/* Quick drill-down to centroid / highest-risk die */}
+                    <div className="pt-1 flex items-center justify-end">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelectHotspot(hs);
+                        }}
+                        className="px-2.5 py-1 rounded bg-telemetry-amber/15 hover:bg-telemetry-amber/25 border border-telemetry-amber/30 text-telemetry-amber text-[11px] font-semibold transition-colors flex items-center gap-1"
+                      >
+                        <span>Inspect Hotspot Center</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          )}
 
           {/* Spatial Pattern Analysis Summary */}
           {spatialMetrics && (
@@ -538,18 +674,6 @@ export const WaferIntelligence: React.FC = () => {
                 </div>
               </div>
             </Panel>
-          )}
-
-          {/* Persistent Selected Die Inspector */}
-          {selectedDie && (
-            <div id="selected-die-inspector">
-              <DieInspector
-                die={selectedDie}
-                allDies={waferData.dies}
-                onSelectDie={handleSelectDie}
-                onClose={() => setSelectedDie(null)}
-              />
-            </div>
           )}
         </div>
       ) : null}

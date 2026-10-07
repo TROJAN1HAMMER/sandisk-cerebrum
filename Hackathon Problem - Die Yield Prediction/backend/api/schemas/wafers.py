@@ -35,7 +35,29 @@ class DiePoint(BaseModel):
     edge_dist: Optional[float] = None
     b_max: Optional[float] = None
     cnt_104: Optional[float] = None
+    calibrated_risk: Optional[float] = None
 
 class WaferDetailResponse(BaseModel):
     summary: WaferSummaryItem
     dies: List[DiePoint]
+
+class HotspotSummaryItem(BaseModel):
+    hotspot_id: str
+    region_name: str
+    center_row: int
+    center_col: int
+    radius_dies: int
+    die_count: int
+    high_risk_die_count: int
+    observed_defect_count: int
+    mean_risk_prob: float
+    defect_density_pct: float
+    primary_morphology: str
+    suspicious_signature: str
+
+class WaferHotspotsResponse(BaseModel):
+    wafer_id: str
+    total_dies: int
+    total_high_risk_dies: int
+    hotspots_count: int
+    hotspots: List[HotspotSummaryItem]

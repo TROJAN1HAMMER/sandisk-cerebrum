@@ -37,5 +37,7 @@ export const modelService = {
     }
     return request<HighRiskDiesResponse>(`/api/v1/models/high-risk-dies?${params.toString()}`);
   },
+
+  getCandidates: () => request<Record<string, unknown>>('/api/v1/models/candidates'),
 };
 

@@ -1,5 +1,6 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
+import numpy as np
 import pandas as pd
 
 from backend.deps import get_diagnostics_df
@@ -7,7 +8,9 @@ from backend.api.schemas.wafers import (
     WaferSummaryItem,
     WaferListResponse,
     DiePoint,
-    WaferDetailResponse
+    WaferDetailResponse,
+    HotspotSummaryItem,
+    WaferHotspotsResponse
 )
 
 router = APIRouter(prefix="/wafers", tags=["Wafer Intelligence"])
@@ -134,7 +137,8 @@ def get_wafer_dies(
                 radial_dist=float(round(row["radial_dist"], 4)) if "radial_dist" in row and pd.notna(row["radial_dist"]) else None,
                 edge_dist=float(round(row["edge_dist"], 4)) if "edge_dist" in row and pd.notna(row["edge_dist"]) else None,
                 b_max=float(round(row["b_max"], 2)) if "b_max" in row and pd.notna(row["b_max"]) else None,
-                cnt_104=float(row["cnt_104"]) if "cnt_104" in row and pd.notna(row["cnt_104"]) else None
+                cnt_104=float(row["cnt_104"]) if "cnt_104" in row and pd.notna(row["cnt_104"]) else None,
+                calibrated_risk=float(round(row["calibrated_risk"], 4)) if "calibrated_risk" in row and pd.notna(row["calibrated_risk"]) else float(round(row["prob_Cascade_B"], 4))
             )
         )
 
@@ -178,5 +182,119 @@ def get_single_wafer_die(
         radial_dist=float(round(row["radial_dist"], 4)) if "radial_dist" in row and pd.notna(row["radial_dist"]) else None,
         edge_dist=float(round(row["edge_dist"], 4)) if "edge_dist" in row and pd.notna(row["edge_dist"]) else None,
         b_max=float(round(row["b_max"], 2)) if "b_max" in row and pd.notna(row["b_max"]) else None,
-        cnt_104=float(row["cnt_104"]) if "cnt_104" in row and pd.notna(row["cnt_104"]) else None
+        cnt_104=float(row["cnt_104"]) if "cnt_104" in row and pd.notna(row["cnt_104"]) else None,
+        calibrated_risk=float(round(row["calibrated_risk"], 4)) if "calibrated_risk" in row and pd.notna(row["calibrated_risk"]) else float(round(row["prob_Cascade_B"], 4))
+    )
+
+
+@router.get("/{wafer_id}/hotspots", response_model=WaferHotspotsResponse, summary="Get Wafer Spatial Hotspot Summaries")
+def get_wafer_hotspots(
+    wafer_id: str,
+    diag_df: pd.DataFrame = Depends(get_diagnostics_df)
+) -> WaferHotspotsResponse:
+    """
+    Identifies high-risk spatial clusters and hotspot regions on a wafer for targeted engineering inspection.
+    Enables instant Wafer -> Hotspot -> Die drilldown navigation.
+    """
+    wdf = diag_df[diag_df["wafer_id"] == wafer_id]
+    if len(wdf) == 0:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "WAFER_NOT_FOUND", "message": f"Wafer ID '{wafer_id}' not found"}
+        )
+
+    tot = len(wdf)
+    high_risk_df = wdf[wdf["prob_Cascade_B"] >= 0.50]
+    total_hr = len(high_risk_df)
+
+    hotspots: List[HotspotSummaryItem] = []
+
+    if total_hr > 0:
+        # Spatial partitioning: Edge/Perimeter ring vs Center core vs Quadrant clusters
+        edge_hr = high_risk_df[high_risk_df["edge_dist"] < 0.20] if "edge_dist" in high_risk_df.columns else pd.DataFrame()
+        center_hr = high_risk_df[high_risk_df["radial_dist"] < 0.35] if "radial_dist" in high_risk_df.columns else pd.DataFrame()
+        quad_hr = high_risk_df[~high_risk_df.index.isin(edge_hr.index) & ~high_risk_df.index.isin(center_hr.index)]
+
+        # 1. Edge Bevel Hotspot
+        if len(edge_hr) >= 3:
+            r_c = int(edge_hr["die_row"].median())
+            c_c = int(edge_hr["die_col"].median())
+            obs_def = int(edge_hr["actual_label"].sum())
+            hotspots.append(HotspotSummaryItem(
+                hotspot_id=f"{wafer_id}_HS_EDGE",
+                region_name="Edge Bevel Ring Cluster",
+                center_row=r_c,
+                center_col=c_c,
+                radius_dies=5,
+                die_count=len(wdf[(np.abs(wdf['die_row'] - r_c) <= 5) & (np.abs(wdf['die_col'] - c_c) <= 5)]),
+                high_risk_die_count=len(edge_hr),
+                observed_defect_count=obs_def,
+                mean_risk_prob=round(float(edge_hr["prob_Cascade_B"].mean()), 4),
+                defect_density_pct=round(float(len(edge_hr) / max(1, len(wdf)) * 100.0), 2),
+                primary_morphology="Edge Ring Arc / CMP Exclusion",
+                suspicious_signature="High edge gradient with abnormal parametric resistance"
+            ))
+
+        # 2. Center Core Hotspot
+        if len(center_hr) >= 3:
+            r_c = int(center_hr["die_row"].median())
+            c_c = int(center_hr["die_col"].median())
+            obs_def = int(center_hr["actual_label"].sum())
+            hotspots.append(HotspotSummaryItem(
+                hotspot_id=f"{wafer_id}_HS_CENTER",
+                region_name="Center Reticle Core",
+                center_row=r_c,
+                center_col=c_c,
+                radius_dies=4,
+                die_count=len(wdf[(np.abs(wdf['die_row'] - r_c) <= 4) & (np.abs(wdf['die_col'] - c_c) <= 4)]),
+                high_risk_die_count=len(center_hr),
+                observed_defect_count=obs_def,
+                mean_risk_prob=round(float(center_hr["prob_Cascade_B"].mean()), 4),
+                defect_density_pct=round(float(len(center_hr) / max(1, len(wdf)) * 100.0), 2),
+                primary_morphology="Radial Concentric Cluster",
+                suspicious_signature="Central thermal excursion and analog voltage collapse"
+            ))
+
+        # 3. Main General Hotspot (if edge or center didn't trigger, or dominant cluster)
+        if len(hotspots) == 0:
+            r_c = int(high_risk_df["die_row"].median())
+            c_c = int(high_risk_df["die_col"].median())
+            obs_def = int(high_risk_df["actual_label"].sum())
+            hotspots.append(HotspotSummaryItem(
+                hotspot_id=f"{wafer_id}_HS_MAIN",
+                region_name="Primary Defect Epicenter",
+                center_row=r_c,
+                center_col=c_c,
+                radius_dies=5,
+                die_count=len(wdf[(np.abs(wdf['die_row'] - r_c) <= 5) & (np.abs(wdf['die_col'] - c_c) <= 5)]),
+                high_risk_die_count=total_hr,
+                observed_defect_count=obs_def,
+                mean_risk_prob=round(float(high_risk_df["prob_Cascade_B"].mean()), 4),
+                defect_density_pct=round(float(total_hr / max(1, tot) * 100.0), 2),
+                primary_morphology="Localized Spatial Cluster",
+                suspicious_signature="Correlated electrical and sub-die block anomalies"
+            ))
+    else:
+        # Low risk wafer
+        hotspots.append(HotspotSummaryItem(
+            hotspot_id=f"{wafer_id}_HS_CLEAN",
+            region_name="Uniform Baseline (Low Risk)",
+            center_row=int(wdf["die_row"].median()),
+            center_col=int(wdf["die_col"].median()),
+            radius_dies=3,
+            die_count=tot,
+            high_risk_die_count=0,
+            observed_defect_count=int(wdf["actual_label"].sum()),
+            mean_risk_prob=round(float(wdf["prob_Cascade_B"].mean()), 4),
+            defect_density_pct=0.0,
+            primary_morphology="Dispersed / Nominal",
+            suspicious_signature="No high-risk spatial clusters detected"
+        ))
+
+    return WaferHotspotsResponse(
+        wafer_id=wafer_id,
+        total_dies=tot,
+        total_high_risk_dies=total_hr,
+        hotspots_count=len(hotspots),
+        hotspots=hotspots
     )

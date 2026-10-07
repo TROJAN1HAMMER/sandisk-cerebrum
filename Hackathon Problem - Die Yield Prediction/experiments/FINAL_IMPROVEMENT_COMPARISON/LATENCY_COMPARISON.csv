@@ -1,0 +1,8 @@
+Candidate,Train_Time_s,Model_Size_MB,Inference_ms_per_die,Escalation_Pct,Effective_Cost_ms_per_die,Throughput_dies_per_sec,Complexity_Rank
+Model A Alone (LightGBM),4.5,1.04,0.0066,0.0,0.0066,151515,1
+Frozen B2 Cascade (Production Baseline),25.2,2.08,0.0085,5.98,0.0071,140845,2
+EXP-05 Late Prob Stacking (B2 + CNN),225.0,2.25,0.0292,5.98,0.0084,119047,4
+EXP-06 3-Model Ensemble Cascade,70.6,8.5,0.0208,25.75,0.0229,43668,5
+EXP-07 B2 + All Signal Features (580),27.0,2.22,0.0089,5.98,0.0072,138888,3
+EXP-08 B2 + Multi-Scale TCN,231.5,2.24,0.0429,5.98,0.0092,108695,4
+EXP-09 Calibrated B2 Cascade,25.3,2.1,0.0086,5.98,0.0071,140845,2

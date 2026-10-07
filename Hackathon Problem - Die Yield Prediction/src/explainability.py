@@ -41,6 +41,30 @@ def compute_block_occlusion_attribution(cnn_model, block_array, window_size=50, 
     return base_prob, attributions
 
 
+def compute_tcn_saliency_attribution(tcn_model, block_array, device=None):
+    """
+    Compute input gradient saliency attribution using the Multi-Scale Dilated TCN.
+    Provides fast, exact sensitivity over the 2,000-block sequence for offline forensics.
+    """
+    if device is None:
+        device = next(tcn_model.parameters()).device
+
+    tcn_model.eval()
+    norm_block = (block_array - 100.0) / 15.0
+    tensor = torch.tensor(norm_block, dtype=torch.float32).unsqueeze(0).unsqueeze(0).to(device)
+    tensor.requires_grad = True
+
+    logit = tcn_model(tensor)
+    prob = torch.sigmoid(logit).item()
+    logit.backward()
+
+    saliency = torch.abs(tensor.grad).squeeze().cpu().numpy()
+    if saliency.max() > 0:
+        saliency = saliency / saliency.max()
+
+    return prob, saliency
+
+
 def explain_die_prediction_multi_res(
     die_index, df_subset, model_A, model_B_fusion, cnn_model,
     X_val_A, val_cnn_embeds, val_block_matrix, opt_threshold=0.65

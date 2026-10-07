@@ -262,5 +262,44 @@ class TestFastAPIBackend(unittest.TestCase):
                 self.assertAlmostEqual(api_res["prob_Model_B"], float(raw_res["prob_Model_B"]), places=4)
             self.assertEqual(api_res["compute_path"], str(raw_res["compute_path"]))
 
+    def test_14_tcn_forensics_endpoint(self):
+        """GET /api/v1/inference/tcn-forensics executes Multi-Scale TCN sequence attribution."""
+        resp = self.client.get("/api/v1/inference/tcn-forensics?wafer_id=W_N_0057&die_row=32&die_col=23")
+        self.assertEqual(resp.status_code, 200)
+        tcn_data = resp.json()
+        self.assertTrue(tcn_data["forensic_only"])
+        self.assertFalse(tcn_data["used_in_production_routing"])
+        self.assertEqual(len(tcn_data["saliency_curve"]), 2000)
+        self.assertGreaterEqual(tcn_data["peak_block_index"], 0)
+        self.assertLess(tcn_data["peak_block_index"], 2000)
+
+    def test_15_simulate_policy_endpoint(self):
+        """POST /api/v1/evaluation/simulate-policy executes dynamic in-memory policy simulation."""
+        req_payload = {
+            "tau_A": 0.5100,
+            "gate_lower": 0.295,
+            "gate_upper": 0.550,
+            "tau_B": 0.5376
+        }
+        resp = self.client.post("/api/v1/evaluation/simulate-policy", json=req_payload)
+        self.assertEqual(resp.status_code, 200)
+        sim_data = resp.json()
+        self.assertTrue(sim_data["simulation_mode"])
+        self.assertFalse(sim_data["production_policy_modified"])
+        self.assertGreater(sim_data["simulated_metrics"]["f1"], 0.45)
+        self.assertGreater(sim_data["simulated_metrics"]["compute_saved_pct"], 90.0)
+
+    def test_16_wafer_hotspots_endpoint(self):
+        """GET /api/v1/wafers/{wafer_id}/hotspots returns spatial cluster summaries for wafer."""
+        resp = self.client.get("/api/v1/wafers/W_N_0057/hotspots")
+        self.assertEqual(resp.status_code, 200)
+        hs_data = resp.json()
+        self.assertEqual(hs_data["wafer_id"], "W_N_0057")
+        self.assertGreater(hs_data["hotspots_count"], 0)
+        first_hs = hs_data["hotspots"][0]
+        self.assertIn("center_row", first_hs)
+        self.assertIn("center_col", first_hs)
+        self.assertIn("primary_morphology", first_hs)
+
 if __name__ == "__main__":
     unittest.main()

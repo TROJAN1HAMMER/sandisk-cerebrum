@@ -1,0 +1,29 @@
+{
+  "experiment_id": "EXP-09",
+  "experiment_name": "Isotonic Probability Calibration",
+  "calibration_method": "Non-parametric Isotonic Regression",
+  "fitting_protocol": "5-fold Wafer-Grouped Out-Of-Fold on 128 Training Wafers",
+  "thresholds": {
+    "raw": {
+      "tau_A": 0.51,
+      "tau_B": 0.5376,
+      "gate": [
+        0.295,
+        0.55
+      ]
+    },
+    "calibrated": {
+      "tau_A": 0.3424,
+      "tau_B": 0.308,
+      "gate": [
+        0.0588,
+        0.512
+      ]
+    }
+  },
+  "scientific_findings": {
+    "brier_improved": true,
+    "ece_improved": true,
+    "discrimination_preserved": true
+  }
+}

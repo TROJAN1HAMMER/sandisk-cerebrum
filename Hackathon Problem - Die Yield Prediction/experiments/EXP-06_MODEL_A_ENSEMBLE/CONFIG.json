@@ -1,0 +1,29 @@
+{
+  "experiment_id": "EXP-06",
+  "experiment_name": "Model A Ensemble (LightGBM + XGBoost + CatBoost)",
+  "feature_count": 506,
+  "models_evaluated": [
+    "LightGBM",
+    "XGBoost",
+    "CatBoost"
+  ],
+  "ensemble_methods": [
+    "Simple Average",
+    "Weighted Average",
+    "Logit Stacking"
+  ],
+  "optimal_weights_oof": {
+    "lightgbm": 0.0,
+    "xgboost": 1.0,
+    "catboost": 0.0
+  },
+  "routing_gate": {
+    "lower": 0.295,
+    "upper": 0.55
+  },
+  "decision_thresholds": {
+    "tau_A": 0.51,
+    "tau_B": 0.5376
+  },
+  "scientific_decision": "REJECTED_KEEP_LIGHTGBM_MODEL_A"
+}

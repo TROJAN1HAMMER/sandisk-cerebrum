@@ -4,6 +4,7 @@ import { DiePoint } from '../../types/wafers';
 import { useBlockAttribution } from '../../hooks/useInference';
 import { InferenceTrace } from '../inference/InferenceTrace';
 import { BlockSignalViewer } from '../inference/BlockSignalViewer';
+import { TcnForensicViewer } from '../inference/TcnForensicViewer';
 import { StatusBadge } from '../ui/StatusBadge';
 import { MetricCard } from '../ui/MetricCard';
 import { LoadingSkeleton } from '../ui/LoadingSkeleton';
@@ -25,6 +26,8 @@ import {
   ChevronRight,
   Sliders,
   Grid,
+  ShieldCheck,
+  Zap,
 } from 'lucide-react';
 
 interface DieInspectorProps {
@@ -44,18 +47,18 @@ export const DieInspector: React.FC<DieInspectorProps> = ({
 }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const urlTab = searchParams.get('tab') as 'trace' | 'signal' | 'telemetry' | 'neighborhood' | null;
-  const [activeTab, setActiveTabState] = useState<'trace' | 'signal' | 'telemetry' | 'neighborhood'>(
-    (urlTab && ['trace', 'signal', 'telemetry', 'neighborhood'].includes(urlTab)) ? urlTab : 'trace'
+  const urlTab = searchParams.get('tab') as 'trace' | 'evidence' | 'tcn' | 'signal' | 'telemetry' | 'neighborhood' | null;
+  const [activeTab, setActiveTabState] = useState<'trace' | 'evidence' | 'tcn' | 'signal' | 'telemetry' | 'neighborhood'>(
+    (urlTab && ['trace', 'evidence', 'tcn', 'signal', 'telemetry', 'neighborhood'].includes(urlTab)) ? urlTab : 'evidence'
   );
 
   useEffect(() => {
-    if (urlTab && ['trace', 'signal', 'telemetry', 'neighborhood'].includes(urlTab)) {
+    if (urlTab && ['trace', 'evidence', 'tcn', 'signal', 'telemetry', 'neighborhood'].includes(urlTab)) {
       setActiveTabState(urlTab);
     }
   }, [urlTab]);
 
-  const setActiveTab = (tab: 'trace' | 'signal' | 'telemetry' | 'neighborhood') => {
+  const setActiveTab = (tab: 'trace' | 'evidence' | 'tcn' | 'signal' | 'telemetry' | 'neighborhood') => {
     setActiveTabState(tab);
     const newParams = new URLSearchParams(searchParams);
     newParams.set('tab', tab);
@@ -244,10 +247,21 @@ export const DieInspector: React.FC<DieInspectorProps> = ({
       {/* 2. Hero Metric Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 p-4 bg-silicon-card border-b border-silicon-border">
         <MetricCard
-          title="Cascade P(Final)"
+          title="Raw P(Cascade)"
           value={`${(die.prob_Cascade_B * 100).toFixed(2)}%`}
           subtitle={isFail ? 'Prediction: FAIL' : 'Prediction: PASS'}
           accent={isFail ? 'red' : 'green'}
+        />
+        <MetricCard
+          title="Calibrated Risk"
+          value={
+            die.calibrated_risk !== undefined && die.calibrated_risk !== null
+              ? `${(die.calibrated_risk * 100).toFixed(2)}%`
+              : `${(die.prob_Cascade_B * 100).toFixed(2)}%`
+          }
+          subtitle="Isotonic (EXP-09)"
+          badge="REPORTING"
+          accent="purple"
         />
         <MetricCard
           title="LightGBM Model A"
@@ -258,11 +272,11 @@ export const DieInspector: React.FC<DieInspectorProps> = ({
         <MetricCard
           title="Stage 2 Gate B"
           value={die.in_gate_B ? 'ESCALATED' : 'BYPASSED'}
-          subtitle={die.in_gate_B ? 'In [0.25, 0.55]' : 'Outside Band'}
+          subtitle={die.in_gate_B ? 'In [0.295, 0.550]' : 'Outside Band'}
           accent={die.in_gate_B ? 'amber' : 'neutral'}
         />
         <MetricCard
-          title="Model B (1D CNN)"
+          title="Model B2 Sub-Die"
           value={
             die.in_gate_B
               ? `${(die.prob_Model_B * 100).toFixed(2)}%`
@@ -271,8 +285,8 @@ export const DieInspector: React.FC<DieInspectorProps> = ({
           subtitle={
             die.in_gate_B
               ? die.decision_Cascade_B === 1
-                ? 'Model B: FAIL'
-                : 'Model B: PASS'
+                ? 'Model B2: FAIL'
+                : 'Model B2: PASS'
               : 'Compute Saved'
           }
           accent={die.in_gate_B ? 'purple' : 'neutral'}
@@ -280,23 +294,25 @@ export const DieInspector: React.FC<DieInspectorProps> = ({
         <MetricCard
           title="Ground Truth"
           value={die.actual_label === 1 ? 'DEFECT (1)' : 'PASS (0)'}
-          subtitle="Fab Post-Test"
+          subtitle={isRecovered ? '+1 RESCUED FN' : 'Fab Post-Test'}
           accent={die.actual_label === 1 ? 'red' : 'green'}
-        />
-        <MetricCard
-          title="Recovery Delta"
-          value={
-            isRecovered
-              ? '+1 DEFECT'
-              : `${(die.delta_prob * 100 > 0 ? '+' : '') + (die.delta_prob * 100).toFixed(1)}%`
-          }
-          subtitle="Stage 2 Resolution"
-          accent={isRecovered ? 'cyan' : 'neutral'}
         />
       </div>
 
       {/* 3. Navigation Tabs */}
       <div className="flex items-center gap-1 px-4 bg-silicon-surface border-b border-silicon-border font-mono text-xs overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('evidence')}
+          className={`flex items-center gap-1.5 px-3.5 py-2.5 font-medium border-b-2 transition-colors ${
+            activeTab === 'evidence'
+              ? 'border-telemetry-cyan text-telemetry-cyan font-bold'
+              : 'border-transparent text-content-secondary hover:text-content-primary'
+          }`}
+        >
+          <ShieldCheck className="w-3.5 h-3.5" />
+          <span>Evidence Chain</span>
+        </button>
+
         <button
           onClick={() => setActiveTab('trace')}
           className={`flex items-center gap-1.5 px-3.5 py-2.5 font-medium border-b-2 transition-colors ${
@@ -306,7 +322,19 @@ export const DieInspector: React.FC<DieInspectorProps> = ({
           }`}
         >
           <Layers className="w-3.5 h-3.5" />
-          <span>Inference Trace & Gating</span>
+          <span>Decision Trace</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('tcn')}
+          className={`flex items-center gap-1.5 px-3.5 py-2.5 font-medium border-b-2 transition-colors ${
+            activeTab === 'tcn'
+              ? 'border-telemetry-purple text-telemetry-purple font-bold'
+              : 'border-transparent text-content-secondary hover:text-content-primary'
+          }`}
+        >
+          <Zap className="w-3.5 h-3.5 text-telemetry-purple" />
+          <span>TCN Forensics</span>
         </button>
 
         <button
@@ -318,7 +346,7 @@ export const DieInspector: React.FC<DieInspectorProps> = ({
           }`}
         >
           <Activity className="w-3.5 h-3.5" />
-          <span>2,000-Block Signal & Attribution</span>
+          <span>2,000-Block Signal</span>
           {attributionData && (
             <span className="w-1.5 h-1.5 rounded-full bg-telemetry-cyan ml-0.5" />
           )}
@@ -351,7 +379,171 @@ export const DieInspector: React.FC<DieInspectorProps> = ({
 
       {/* 4. Tab Content */}
       <div className="p-4 bg-silicon-canvas">
-        {/* TAB 1: Inference Trace */}
+        {/* TAB: Multi-Sensor Evidence Chain */}
+        {activeTab === 'evidence' && (
+          <div className="space-y-4">
+            <div className="p-3.5 rounded-lg bg-silicon-elevated border border-silicon-border flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-bold text-content-primary font-mono flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-telemetry-cyan" />
+                  <span>Why Cerebrum Classified This Die As High Risk</span>
+                </h4>
+                <p className="text-xs text-content-secondary mt-0.5">
+                  Multi-sensor physical, spatial, and electrical evidence chain supporting the frozen cascade verdict.
+                </p>
+              </div>
+              <span className={`px-2.5 py-1 rounded text-xs font-mono font-bold ${
+                isFail ? 'bg-telemetry-red/20 text-telemetry-red border border-telemetry-red/40' : 'bg-telemetry-green/20 text-telemetry-green border border-telemetry-green/40'
+              }`}>
+                VERDICT: {isFail ? 'HIGH RISK DEFECT' : 'PASS NOMINAL'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {/* 1. Electrical Evidence */}
+              <div className="p-3.5 rounded-lg bg-silicon-elevated border border-silicon-border space-y-2">
+                <div className="flex items-center justify-between font-mono text-xs">
+                  <span className="text-content-secondary font-bold flex items-center gap-1.5">
+                    <Cpu className="w-3.5 h-3.5 text-telemetry-blue" /> ELECTRICAL EVIDENCE
+                  </span>
+                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
+                    (die.b_max || 0) > 105 || (die.cnt_104 || 0) > 5
+                      ? 'bg-telemetry-red/20 text-telemetry-red'
+                      : 'bg-silicon-canvas text-content-muted'
+                  }`}>
+                    {(die.b_max || 0) > 105 || (die.cnt_104 || 0) > 5 ? 'ANOMALY DETECTED' : 'NOMINAL'}
+                  </span>
+                </div>
+                <div className="space-y-1 font-mono text-xs text-content-secondary">
+                  <div className="flex justify-between">
+                    <span className="text-content-muted">Peak Signal (b_max):</span>
+                    <span className="text-content-primary font-bold">{(die.b_max || 100.0).toFixed(2)} mV</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-content-muted">Anomalous Blocks (cnt_104):</span>
+                    <span className="text-telemetry-amber font-bold">{die.cnt_104 || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-content-muted">Baseline Reference:</span>
+                    <span>100.0 mV Nominal (Threshold 104.0)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Spatial Evidence */}
+              <div className="p-3.5 rounded-lg bg-silicon-elevated border border-silicon-border space-y-2">
+                <div className="flex items-center justify-between font-mono text-xs">
+                  <span className="text-content-secondary font-bold flex items-center gap-1.5">
+                    <Compass className="w-3.5 h-3.5 text-telemetry-cyan" /> SPATIAL EVIDENCE
+                  </span>
+                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
+                    (die.radial_dist || 0) > 0.85
+                      ? 'bg-telemetry-amber/20 text-telemetry-amber'
+                      : 'bg-silicon-canvas text-content-muted'
+                  }`}>
+                    {(die.radial_dist || 0) > 0.85 ? 'EDGE BEVEL REGION' : 'CORE PATTERN'}
+                  </span>
+                </div>
+                <div className="space-y-1 font-mono text-xs text-content-secondary">
+                  <div className="flex justify-between">
+                    <span className="text-content-muted">Wafer Position:</span>
+                    <span className="text-content-primary font-bold">Row {die.die_row}, Col {die.die_col}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-content-muted">Normalized Radial Dist:</span>
+                    <span className="text-telemetry-cyan font-bold">{(die.radial_dist || 0.45).toFixed(4)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-content-muted">Edge Distance:</span>
+                    <span>{(die.edge_dist || 0.55).toFixed(4)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Signal Waveform Evidence */}
+              <div className="p-3.5 rounded-lg bg-silicon-elevated border border-silicon-border space-y-2">
+                <div className="flex items-center justify-between font-mono text-xs">
+                  <span className="text-content-secondary font-bold flex items-center gap-1.5">
+                    <Activity className="w-3.5 h-3.5 text-telemetry-purple" /> SIGNAL EVIDENCE (2,000 BLOCKS)
+                  </span>
+                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
+                    die.in_gate_B
+                      ? 'bg-telemetry-purple/20 text-telemetry-purple'
+                      : 'bg-silicon-canvas text-content-muted'
+                  }`}>
+                    {die.in_gate_B ? 'SECONDARY INSPECTION' : 'BYPASS FAST PATH'}
+                  </span>
+                </div>
+                <div className="space-y-1 font-mono text-xs text-content-secondary">
+                  <div className="flex justify-between">
+                    <span className="text-content-muted">Stage 1 Probability:</span>
+                    <span className="text-content-primary font-bold">{(die.prob_Model_A * 100).toFixed(2)}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-content-muted">Stage 2 Sub-Die Probability:</span>
+                    <span className="text-telemetry-purple font-bold">
+                      {die.in_gate_B ? `${(die.prob_Model_B * 100).toFixed(2)}%` : 'Bypassed (Fast Path)'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-content-muted">Calibrated Risk Indicator:</span>
+                    <span className="text-telemetry-green font-bold">
+                      {die.calibrated_risk !== undefined && die.calibrated_risk !== null
+                        ? `${(die.calibrated_risk * 100).toFixed(2)}%`
+                        : `${(die.prob_Cascade_B * 100).toFixed(2)}%`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Model Decision Trace */}
+              <div className="p-3.5 rounded-lg bg-silicon-elevated border border-silicon-border space-y-2">
+                <div className="flex items-center justify-between font-mono text-xs">
+                  <span className="text-content-secondary font-bold flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-telemetry-amber" /> CASCADE DECISION TRACE
+                  </span>
+                  <span className="font-bold px-2 py-0.5 rounded text-[10px] bg-telemetry-cyan/20 text-telemetry-cyan">
+                    FROZEN B2 ENGINE
+                  </span>
+                </div>
+                <div className="space-y-1 font-mono text-xs text-content-secondary">
+                  <div className="flex justify-between">
+                    <span className="text-content-muted">Model A Threshold τ_A:</span>
+                    <span>0.5100</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-content-muted">Gate Gating Window:</span>
+                    <span className="text-telemetry-amber">[0.295, 0.550]</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-content-muted">Model B2 Threshold τ_B:</span>
+                    <span className="text-telemetry-purple">0.5376</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Evidence Summary Takeaway */}
+            <div className="p-3 rounded bg-silicon-elevated border border-silicon-border/80 font-mono text-xs text-content-secondary">
+              <span className="text-telemetry-cyan font-bold mr-1.5">ENGINEERING TAKEAWAY:</span>
+              {isRecovered ? (
+                <span>
+                  This die was originally missed by Model A screening (P_A = {(die.prob_Model_A * 100).toFixed(2)}% &lt; 0.5100). Because it fell in uncertainty gate [0.295, 0.550], Cerebrum triggered secondary inspection where Model B2 identified sub-die signal anomalies and correctly recovered the true defect (+1 Net Defect Gain).
+                </span>
+              ) : isFail ? (
+                <span>
+                  Physical coordinates and parametric measurements indicate high defect probability ({((die.calibrated_risk || die.prob_Cascade_B) * 100).toFixed(2)}% calibrated risk). Recommended for physical failure analysis (PFA) review.
+                </span>
+              ) : (
+                <span>
+                  Parametric measurements and spatial signals remain within nominal specification limits. Fast-path routing verified clean die without unnecessary secondary inspection computation.
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB: Decision Trace */}
         {activeTab === 'trace' && (
           <InferenceTrace
             waferId={die.wafer_id}
@@ -368,6 +560,16 @@ export const DieInspector: React.FC<DieInspectorProps> = ({
             recoveredFn={die.recovered_FN_Gate_B}
             radialDist={die.radial_dist}
             edgeDist={die.edge_dist}
+          />
+        )}
+
+        {/* TAB: Multi-Scale Dilated TCN Sequence Forensics */}
+        {activeTab === 'tcn' && (
+          <TcnForensicViewer
+            key={`tcn-${die.wafer_id}-${die.die_row}-${die.die_col}`}
+            waferId={die.wafer_id}
+            dieRow={die.die_row}
+            dieCol={die.die_col}
           />
         )}
 

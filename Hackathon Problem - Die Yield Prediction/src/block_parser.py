@@ -104,3 +104,38 @@ def extract_B1_engineered_features(block_matrix):
     })
     
     return pd.concat([b0_df, b1_add], axis=1)
+
+
+def extract_B3_candidate_block_features(block_matrix):
+    """
+    Extract B3 Candidate physics-informed block burst features (11 features):
+    - b_mean, b_std, b_min, b_max, b_p95, b_p99
+    - b_cnt_104, b_cnt_106, b_max_spike_dev
+    - b_first_diff, b_longest_run_104
+    Uses high-speed vectorized streak detection.
+    """
+    n = len(block_matrix)
+    cnt_104 = np.sum(block_matrix > 104.0, axis=1)
+    cnt_106 = np.sum(block_matrix > 106.0, axis=1)
+    longest_runs = np.zeros(n, dtype=np.float32)
+    has_spikes = np.where(cnt_104 > 0)[0]
+    for i in has_spikes:
+        m = (block_matrix[i] > 104.0).view(np.int8)
+        p = np.diff(np.concatenate(([0], m, [0])))
+        starts = np.where(p == 1)[0]
+        ends = np.where(p == -1)[0]
+        longest_runs[i] = np.max(ends - starts)
+        
+    return pd.DataFrame({
+        'b_mean': np.mean(block_matrix, axis=1),
+        'b_std': np.std(block_matrix, axis=1),
+        'b_min': np.min(block_matrix, axis=1),
+        'b_max': np.max(block_matrix, axis=1),
+        'b_p95': np.percentile(block_matrix, 95, axis=1),
+        'b_p99': np.percentile(block_matrix, 99, axis=1),
+        'b_cnt_104': cnt_104,
+        'b_cnt_106': cnt_106,
+        'b_max_spike_dev': np.max(np.abs(block_matrix - 100.0), axis=1),
+        'b_first_diff': np.mean(np.abs(np.diff(block_matrix, axis=1)), axis=1),
+        'b_longest_run_104': longest_runs
+    })

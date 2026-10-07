@@ -56,3 +56,11 @@ export function useHighRiskDies(limit: number = 50, waferId?: string) {
   });
 }
 
+export function useModelCandidates() {
+  return useQuery({
+    queryKey: ['models', 'candidates'],
+    queryFn: modelService.getCandidates,
+    staleTime: Infinity,
+  });
+}
+

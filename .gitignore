@@ -55,6 +55,9 @@ package-lock.json
 backend/data/
 **/backend/data/
 *.npz
+*.npy
 **/cached_block_features.npz
+experiments/exp_cache/
+**/experiments/exp_cache/
 
 

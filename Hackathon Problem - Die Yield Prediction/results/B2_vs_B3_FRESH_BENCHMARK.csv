@@ -1,0 +1,15 @@
+Dataset,Metric,B2_Production,B3_Candidate,Delta_Absolute,Delta_Relative_Pct,Winner
+Independent EXP-04,F1-Score,0.5177,0.5264,+0.0087,+1.68%,B3
+Independent EXP-04,Precision,85.22%,87.67%,+2.45 pp,+2.88%,B3
+Independent EXP-04,Recall,37.17%,37.61%,+0.43 pp,+1.17%,B3
+Independent EXP-04,F2-Score,0.4190,0.4246,+0.0056,+1.34%,B3
+Independent EXP-04,MCC,0.5517,0.5636,+0.0119,+2.15%,B3
+Independent EXP-04,PR-AUC,0.4808,0.5004,+0.0197,+4.09%,B3
+Independent EXP-04,ROC-AUC,0.8078,0.8270,+0.0191,+2.37%,B3
+Independent EXP-04,Accuracy,97.07%,97.13%,+0.07 pp,+0.07%,B3
+Independent EXP-04,Escalation Rate,6.22%,3.95%,-2.27 pp,-36.49%,B3 (Lower)
+Independent EXP-04,Secondary Compute Bypassed,93.78%,96.05%,+2.27 pp,+2.42%,B3 (Higher)
+Independent EXP-04,True Positives (TP),513,519,+6,+1.17%,B3
+Independent EXP-04,False Positives (FP),89,73,-16,-17.98%,B3 (Fewer)
+Independent EXP-04,False Negatives (FN),867,861,-6,-0.69%,B3 (Fewer)
+Independent EXP-04,True Negatives (TN),31129,31145,+16,+0.05%,B3

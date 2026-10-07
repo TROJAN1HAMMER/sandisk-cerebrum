@@ -207,8 +207,8 @@ Accuracy    = 97.07%
 Balanced Acc= 68.44%
 
 Compute & Flow:
-Escalation Rate = 6.22% (2,027 dies)
-Compute Saved   = 93.78% (30,571 dies fast-path bypassed)
+Escalation Rate = 6.22% (2,028 dies)
+Compute Saved   = 93.78% (30,570 dies fast-path bypassed)
 ```
 
 ### Generalization Gap
@@ -343,7 +343,7 @@ The cascade functions as an intelligent engineering tradeoff: it spends 43 false
 
 In semiconductor automated test equipment (ATE), testing time equals direct manufacturing cost:
 - **Baseline Model B Evaluation:** Escalated 3,317 dies per 27,972 (11.86% escalation), requiring expensive waveform extraction for 1 in 8 dies.
-- **Active B2 Cascade:** Escalates only 2,027 dies per 32,598 (**6.22% escalation**).
+- **Active B2 Cascade:** Escalates only 2,028 dies per 32,598 (**6.22% escalation**).
 - **Fab Result:** **`93.78%` of dies bypass secondary inference entirely**, saving over 93% of the block computation budget.
 
 ---
@@ -470,7 +470,7 @@ The resulting platform delivers **85.22% precision, 93.78% compute savings, and 
 > "In high-volume semiconductor manufacturing, scrapping a healthy $500 wafer die due to a false alarm is economically catastrophic. Operating at 37.17% recall allows us to maintain **85.22% precision** (only 89 false alarms across 32,598 dies). If fab economics favor catching more defects at the cost of higher scrap, the cascade threshold can be tuned along the Pareto curve, but 0.5376 represents the mathematically optimal balance for F1."
 
 ### If Asked: "What is the 93.78% Compute Saving?"
-> "Out of 32,598 dies in the independent test population, 30,571 dies received a predicted defect probability from Model A of $P_A < 0.295$. They were immediately cleared as passes. Only 2,027 dies (6.22%) required raw 2,000-block sequence extraction, rolling statistical computation, and Model B inference."
+> "Out of 32,598 dies in the independent test population, 30,570 dies received a predicted defect probability from Model A of $P_A < 0.295$. They were immediately cleared as passes. Only 2,028 dies (6.22%) required raw 2,000-block sequence extraction, rolling statistical computation, and Model B inference."
 
 ### If Asked: "What Actually Changed from the Original Model to B2?"
 > "The model family is still LightGBM, but four critical things changed:
@@ -480,4 +480,84 @@ The resulting platform delivers **85.22% precision, 93.78% compute savings, and 
 > 4. Feature count expanded from 526 to 536, raising F1 from 0.5072 to 0.5177 on independent data and compute savings from 88.14% to 93.78%."
 
 ### If Asked: "Why B2 Instead of B3?"
-> "Candidate B3 pruned four legacy features (`longest_run_104`, `cluster_width`, `b_min`, `mad_100`). In empirical testing, B2 outperformed B3 with higher precision (89.32% vs 88.74%) and lower false alarms (47 vs 51) on the canonical holdout. Retaining those macro features provided subtle regularizing context that improved overall decision purity."
+> "In earlier internal ablations, pruning legacy features without structural fusion degraded precision. Subsequently, a full candidate—B3-DualStream—was developed incorporating enhanced polar spatial features, PCA moments, burst streak features, and 1D-CNN late probability fusion. On the independent EXP-04 set, B3-DualStream achieved F1 = 0.5264 (+0.0087) with 16 fewer false alarms. However, on the Canonical 32-wafer holdout, B3 doubled false alarms (47 → 92 FP, -7.54 pp precision). Under strict semiconductor MLOps qualification standards, B2 is retained as active production while B3-DualStream is staged as a validated candidate pending multi-lot fab qualification."
+
+---
+
+## 7. Post-B2 Candidate Integration — B3-DualStream
+
+```
+                  INPUT (Parametric Test Data)
+                               |
+                        Feature Router
+                               |
+        ┌──────────────────────┴──────────────────────┐
+        |                                             |
+    B2 Feature Set (506 feats)                   B3 Feature Set (517 feats)
+        |                                             |
+    Model A B2 (τA = 0.5100)                     Model A B3 (τA = 0.5100)
+        |                                             |
+    Gate [0.295, 0.550]                         Candidate Gate [0.250, 0.550]
+        |                                             |
+    Model B B2 (536 feats, τB = 0.5376)          Model B3 (528 tabular feats)
+        |                                             |
+        |                                          1D-CNN (2,000 blocks)
+        |                                             |
+        |                                    Late Probability Fusion
+        |                                    (0.90*P_tab + 0.10*P_CNN)
+        |                                             |
+        ▼                                             ▼
+  ACTIVE PRODUCTION                             VALIDATED CANDIDATE
+```
+
+### 7.1 Why B3-DualStream Was Developed
+To evaluate whether combining deep feature engineering with deep learning could overcome the residual false-negative wall without degrading tabular stability. While raw embedding concatenation was rejected in earlier experiments due to decision-tree dilution, **probability-level late fusion** combined with **parametric PCA moments** and **polar coordinate geometry** offered a hypothesis to boost recall while controlling model variance.
+
+### 7.2 What Changed in B3-DualStream
+1. **Model A Feature Pipeline:** Expanded from 506 to 517 features:
+   - Polar geometry: `radial_dist`, `sin_theta`, `cos_theta`
+   - Pre-test probe fail densities across multiple apertures: 3x3, 5x5, 7x7
+   - Parametric pass-distribution z-score statistics: max/mean/std z, sum squared z, count >2σ, count >3σ
+   - PCA reconstruction residual ($k=25$), fitted **strictly** on passing training dies.
+2. **Model B Feature Pipeline:** Expanded tabular features with 11 physics-informed block anomaly streak indicators (`burst_count_104`, `burst_count_106`, `volatility_first_diff`, `longest_run_104`).
+3. **1D-CNN Late Probability Fusion:** Evaluated only on escalated dies:
+   $$P_{\text{final}} = 0.90 \times P_{\text{tabular}} + 0.10 \times P_{\text{CNN}}$$
+   Preserves LightGBM tree-split integrity while allowing the deep spatial ConvNet to softly boost subtle defect signatures.
+
+### 7.3 Performance Comparison
+
+| Evaluation Population | Metric | Active Production B2 | Candidate B3-DualStream | Delta (B3 vs B2) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Independent EXP-04**<br>(40 Wafers, 32,598 Dies) | **F1 Score** | **0.5177** | **0.5264** | **+0.0087** |
+| | **F2 Score** | 0.4190 | 0.4246 | +0.0056 |
+| | **MCC** | 0.5517 | 0.5636 | +0.0119 |
+| | **Precision** | 85.22% | 87.67% | +2.45 pp |
+| | **Recall** | 37.17% | 37.61% | +0.44 pp |
+| | **PR-AUC** | 0.4808 | 0.5004 | +0.0196 |
+| | **ROC-AUC** | 0.8078 | 0.8270 | +0.0192 |
+| | **TP / FP / FN** | 513 / 89 / 867 | 519 / 73 / 861 | +6 TP / -16 FP / -6 FN |
+| | **Compute Saved** | 93.78% | 96.05% | +2.27 pp (740 fewer escalations) |
+| **Canonical Holdout**<br>(32 Wafers, 27,972 Dies) | **F1 Score** | **0.5254** | **0.5291** | +0.0037 |
+| | **Precision** | **89.32%** | **81.78%** | **-7.54 pp** |
+| | **Recall** | 37.22% | 39.11% | +1.89 pp |
+| | **PR-AUC** | 0.4777 | 0.4967 | +0.0190 |
+| | **TP / FP / FN** | 393 / 47 / 663 | 413 / 92 / 643 | +20 TP / **+45 FP** / -20 FN |
+| | **Compute Saved** | 94.02% | 94.68% | +0.66 pp |
+
+*Benchmark Note: The reproducible holdout benchmark measured FP = 92 (not the informal 106 from early exploratory screenshots).*
+
+### 7.4 Experimental High-Recall Policy
+For safety-critical automotive/enterprise NAND lots where defect escape cost dominates scrap costs:
+- **Gate:** $[0.20, 0.50]$
+- **Threshold:** $\tau_B = 0.50$
+- **EXP-04 Metrics:** F1 = 0.5271, Precision = 82.31%, Recall = 38.77%, PR-AUC = 0.5092, TP = 535, FP = 115, FN = 625, Compute Saved = 92.63%
+- **Status:** Clearly labeled in UI as **Experimental High-Recall Policy — NOT Production Default**.
+
+### 7.5 Production Standard vs Staged Candidate Governance
+> **Authoritative Statement:** "B3-DualStream demonstrated improved performance on the frozen EXP-04 independent population and is therefore retained as a validated staged candidate pending broader multi-lot qualification."
+
+**Why B2 Remains Active Production Standard:**
+1. **Zero Deep Learning Dependency in Fast Path:** B2 operates 100% on pure LightGBM, maintaining sub-millisecond per-die latency and zero GPU/PyTorch memory footprint during high-volume inline screening.
+2. **False Alarm Stability:** B2 delivers 89.32% precision on the Canonical Holdout (only 47 false alarms across 27,972 dies). B3's false alarms doubled to 92 on the same holdout, posing scrap risk if deployed without fab-level guardrails.
+3. **Controlled Promotion Gate:** Semiconductor fabs do not promote models on single-dataset uplifts. B3 is formally staged under `models/candidates/` with dual-namespace isolation, ready for shadow mode evaluation across multi-lot runs.
+

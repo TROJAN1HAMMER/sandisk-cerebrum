@@ -27,7 +27,10 @@ def get_release(release_meta: Optional[Dict[str, Any]] = Depends(get_model_relea
     """
     if release_meta is None:
         raise HTTPException(status_code=404, detail={"code": "RELEASE_NOT_FOUND", "message": "Model release metadata not found"})
-    return release_meta
+    res = dict(release_meta)
+    res["evaluation_scope"] = "Active B2 — Independent EXP-04 Validation"
+    res["dataset_label"] = "Independent Test Set (40 Wafers, 32,598 Dies)"
+    return res
 
 @router.get("/metrics", response_model=ModelMetricsResponse, summary="Get Authoritative Clean Verification Metrics")
 def get_metrics(auth_metrics: Dict[str, Any] = Depends(get_auth_metrics)) -> ModelMetricsResponse:
@@ -215,4 +218,44 @@ def get_high_risk_dies(
         "wafer_filter": wafer_id,
         "count": len(records),
         "records": records
+    }
+
+@router.get("/candidates", summary="Get Audited Experimental Candidates & Head-to-Head Benchmarks")
+def get_candidates() -> Dict[str, Any]:
+    """
+    Returns officially audited experimental candidate models (e.g. B3-DualStream)
+    and their comparative evaluation against the frozen B2 production baseline.
+    """
+    import json
+    from backend.config import CANDIDATES_META_PATH, CANDIDATES_EXP04_PATH
+
+    candidates_meta = {}
+    if CANDIDATES_META_PATH.exists():
+        with open(CANDIDATES_META_PATH, "r") as f:
+            candidates_meta = json.load(f)
+
+    exp04_results = {}
+    if CANDIDATES_EXP04_PATH.exists():
+        with open(CANDIDATES_EXP04_PATH, "r") as f:
+            exp04_results = json.load(f)
+
+    return {
+        "status": "VALIDATED_EXPERIMENTAL_CANDIDATE",
+        "active_production_release": "B2",
+        "candidate_model_version": "B3-DualStream",
+        "candidate_architecture": "LightGBM + 1D-CNN Late Probability Fusion (0.90 / 0.10)",
+        "features": {
+            "model_A_features": 517,
+            "model_B_tabular_features": 528,
+            "cnn_input_modality": "2,000 blocks raw sub-die sequence (separate modality)",
+            "novel_features": [
+                "Polar spatial coordinates (radial_dist, sin_theta, cos_theta)",
+                "Pre-test spatial probe defect densities (3x3, 5x5, 7x7)",
+                "Multivariate parametric PCA reconstruction residual (k=25)",
+                "Parametric pass-distribution sigma excursions (gt_2sigma, gt_3sigma)",
+                "Block burst anomaly streaks (>104, >106, longest_run_104)"
+            ]
+        },
+        "artifacts": candidates_meta,
+        "evaluation_summary": exp04_results
     }

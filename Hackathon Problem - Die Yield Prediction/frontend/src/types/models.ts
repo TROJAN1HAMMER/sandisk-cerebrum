@@ -283,3 +283,55 @@ export interface ModelReleaseResponse {
     };
   };
 }
+
+export interface PolicySimulationRequest {
+  tau_A?: number;
+  gate_lower?: number;
+  gate_upper?: number;
+  tau_B?: number;
+  secondary_budget_pct?: number | null;
+}
+
+export interface PolicySimulationResponse {
+  status: string;
+  simulation_mode: boolean;
+  production_policy_modified: boolean;
+  disclaimer: string;
+  parameters: {
+    simulated_tau_A: number;
+    simulated_gate_lower: number;
+    simulated_gate_upper: number;
+    simulated_tau_B: number;
+    secondary_budget_pct?: number | null;
+  };
+  simulated_metrics: {
+    f1: number;
+    f2: number;
+    precision: number;
+    recall: number;
+    mcc: number;
+    escalation_count: number;
+    escalation_rate_pct: number;
+    compute_saved_pct: number;
+    tp: number;
+    fn: number;
+    fp: number;
+    tn: number;
+    fn_rescued: number;
+    fn_escalated: number;
+    tp_lost: number;
+    net_tp_gain: number;
+    new_fp: number;
+  };
+  baseline_comparison: {
+    production_f1: number;
+    production_precision: number;
+    production_recall: number;
+    production_escalation_pct: number;
+    delta_f1: number;
+    delta_precision: number;
+    delta_recall: number;
+    delta_escalation_pct: number;
+    delta_compute_saved_pct: number;
+  };
+}

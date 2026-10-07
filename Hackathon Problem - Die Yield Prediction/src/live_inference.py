@@ -8,6 +8,7 @@ from sklearn.metrics import (
     f1_score, precision_score, recall_score, roc_auc_score,
     precision_recall_curve, auc, confusion_matrix, accuracy_score
 )
+from scipy.ndimage import uniform_filter1d
 from src.block_parser import parse_block_matrix, extract_B1_engineered_features
 from src.spatial import compute_spatial_features
 
@@ -15,8 +16,14 @@ from src.spatial import compute_spatial_features
 MODEL_A_THRESHOLD = 0.5100
 MODEL_B_THRESHOLD = 0.5376
 
-GATE_B_LOWER = 0.25
-GATE_B_UPPER = 0.55
+# Production Gate [0.295, 0.550] (EXP-04 Validated Production Policy)
+# Emergency fallback: MUST NOT use obsolete 0.250 gate
+GATE_B_LOWER = 0.295
+GATE_B_UPPER = 0.550
+
+# Historical Baseline Gate (for comparative auditing)
+HISTORICAL_GATE_B_LOWER = 0.25
+HISTORICAL_GATE_B_UPPER = 0.55
 
 GATE_C_LOWER = 0.30
 GATE_C_UPPER = 0.60
@@ -389,8 +396,8 @@ def execute_full_live_evaluation(
     acc_B = float(accuracy_score(y_val, pred_B))
     tn_b, fp_b, fn_b, tp_b = [int(v) for v in confusion_matrix(y_val, pred_B).ravel()]
     
-    # 3. Gate B [0.25, 0.55]
-    in_gate_B = (p_A >= GATE_B_LOWER) & (p_A <= GATE_B_UPPER)
+    # 3. Gate B [0.25, 0.55] (Historical Canonical Validation Baseline)
+    in_gate_B = (p_A >= HISTORICAL_GATE_B_LOWER) & (p_A <= HISTORICAL_GATE_B_UPPER)
     esc_count_gb = int(in_gate_B.sum())
     esc_pct_gb = float(esc_count_gb / N_total * 100)
     p_final_gb = np.where(in_gate_B, p_B, p_A)
@@ -526,3 +533,92 @@ def execute_full_live_evaluation(
     runtime_dict['integrity_checks'] = integrity_checks
     
     return runtime_dict
+
+
+def execute_candidate_live_evaluation(df=None, full_df=None, policy="candidate_standard"):
+    """
+    Execute live dynamic evaluation of the B3 Candidate Dual-Stream Cascade.
+    Supports:
+      - policy='candidate_standard': Gate [0.250, 0.550], tau_A=0.5100, tau_B=0.5200
+      - policy='high_recall': Gate [0.200, 0.500], tau_A=0.5100, tau_B=0.5000
+    Returns complete candidate metrics dictionary without modifying production state.
+    """
+    from src.model_a import CandidateModelAWrapper
+    from src.model_b import CandidateModelBWrapper
+    from src.cascade import DualStreamCandidateCascade
+    from src.block_parser import parse_block_matrix
+    from sklearn.metrics import (
+        f1_score, precision_score, recall_score, roc_auc_score,
+        precision_recall_curve, auc, confusion_matrix, brier_score_loss,
+        matthews_corrcoef
+    )
+
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    # Default to loading canonical validation holdout if df not supplied
+    if df is None:
+        train_path = os.path.join(base_dir, 'input', 'train.csv')
+        raw_df = pd.read_csv(train_path)
+        from src.data_loader import get_wafer_split
+        eligible_df = raw_df[raw_df['old_label'] == 0].reset_index(drop=True)
+        _, val_mask, _, _ = get_wafer_split(eligible_df)
+        df = eligible_df[val_mask].reset_index(drop=True)
+        full_df = raw_df
+    elif full_df is None:
+        full_df = df
+
+    # Initialize candidate wrappers
+    cand_A = CandidateModelAWrapper()
+    cand_B = CandidateModelBWrapper()
+    cascade = DualStreamCandidateCascade(cand_model_A=cand_A, cand_model_B=cand_B)
+    cascade.set_policy(policy)
+
+    # Feature extraction
+    X_A_cand = cand_A.extract_features(df, full_df=full_df)
+    block_matrix = parse_block_matrix(df['block_readings'])
+    X_B_cand = cand_B.extract_features(X_A_cand, block_matrix)
+
+    # Inference
+    t0 = time.time()
+    res = cascade.predict_cascade(X_A_cand, X_B_cand, block_matrix)
+    latency_ms = (time.time() - t0) / len(df) * 1000.0
+
+    y_true = df['label'].values
+    p_casc = res['p_cascade']
+    preds = res['preds_cascade']
+
+    f1 = float(f1_score(y_true, preds, zero_division=0))
+    prec = float(precision_score(y_true, preds, zero_division=0))
+    rec = float(recall_score(y_true, preds, zero_division=0))
+    roc = float(roc_auc_score(y_true, p_casc))
+    p_curve, r_curve, _ = precision_recall_curve(y_true, p_casc)
+    auc_pr = float(auc(r_curve, p_curve))
+    tn, fp, fn, tp = confusion_matrix(y_true, preds).ravel()
+    mcc = float(matthews_corrcoef(y_true, preds))
+    brier = float(brier_score_loss(y_true, p_casc))
+
+    return {
+        'candidate_model': 'B3-DualStream',
+        'policy': policy,
+        'gate_window': f"[{cascade.lower_gate:.3f}, {cascade.upper_gate:.3f}]",
+        'tau_A': cascade.tau_A,
+        'tau_B': cascade.tau_B,
+        'dies_evaluated': len(df),
+        'latency_ms_per_die': round(latency_ms, 4),
+        'metrics': {
+            'f1': round(f1, 4),
+            'precision': round(prec, 4),
+            'recall': round(rec, 4),
+            'mcc': round(mcc, 4),
+            'pr_auc': round(auc_pr, 4),
+            'roc_auc': round(roc, 4),
+            'tp': int(tp),
+            'fp': int(fp),
+            'fn': int(fn),
+            'tn': int(tn),
+            'brier': round(brier, 4),
+            'compute_saved_pct': round(res['compute_saved_pct'], 2),
+            'escalation_rate_pct': round(res['escalation_rate_pct'], 2),
+            'escalated_dies': res['escalation_count']
+        }
+    }

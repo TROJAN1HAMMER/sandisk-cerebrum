@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "evaluated_at": "2026-09-03 15:58:11 UTC",
+    "evaluated_at": "2026-10-07 20:03:56 UTC",
     "validation_dies_evaluated": 27972,
     "validation_wafers_count": 32,
     "actual_failures": 1056,
@@ -8,7 +8,7 @@
     "runtimes": {
       "model_A_time_s": 0.0,
       "model_B_time_s": 0.0,
-      "total_eval_time_s": 0.056
+      "total_eval_time_s": 0.04
     }
   },
   "model_A": {
@@ -82,6 +82,6 @@
     "prediction_mismatch_count": 0,
     "delta_f1_vs_authoritative": 0.0,
     "delta_auc_vs_authoritative": 0.0,
-    "status_message": "\u2713 LIVE EVALUATION REPRODUCES AUTHORITATIVE BENCHMARK"
+    "status_message": "LIVE EVALUATION REPRODUCES AUTHORITATIVE BENCHMARK"
   }
 }

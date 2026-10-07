@@ -1,18 +1,18 @@
 # SanDisk Cerebrum
-## AI-Powered Die Yield Intelligence Platform
+## Selective Semiconductor Yield-Intelligence Platform
 
 ```text
 ================================================================================
                     FINAL VALIDATED CANDIDATE: B2 ENHANCED CASCADE
 --------------------------------------------------------------------------------
  93.78% Compute Saved  │  0.5177 Cascade F1   │  0.4808 PR-AUC   │  0.8078 ROC-AUC
- 37.17% Defect Recall  │  85.22% Precision    │  +37 Net TP Gain │  35/35 Tests Pass
+ 37.17% Defect Recall  │  85.22% Precision    │  +37 Net TP Gain │  38/38 Tests Pass
 --------------------------------------------------------------------------------
  Validated On: 40 Independent Wafers • 32,598 Dies • 1,380 Defects (input/test.csv)
 ================================================================================
 ```
 
-**SanDisk Cerebrum** is an enterprise-grade semiconductor die yield intelligence system built for high-throughput fabrication facilities. By combining ultra-fast fab-level screening with an asymmetric uncertainty gate and sub-die anomaly intelligence, Cerebrum accurately detects subtle physical silicon failures while bypassing **93.78%** of healthy dies from expensive secondary test sequences.
+**SanDisk Cerebrum** is an industry-grade semiconductor yield-intelligence platform that transforms die testing from passive prediction into active yield engineering decision support. Cerebrum does not merely predict whether a die will fail: it identifies where yield risk is spatially concentrated, explains why individual dies exhibit anomalous behavior across multi-sensor signals, quantifies wafer-level yield exposure, and enables test engineers to optimize secondary analysis throughput.
 
 ---
 
@@ -76,8 +76,8 @@ Authoritative performance across populations, from historical baseline to indepe
 | **False Negatives (FN)**| 667 | 663 | **867** | — |
 | **False Positives (FP)**| 89 | 47 | **89** | — |
 | **True Negatives (TN)** | 26,827 | 26,869 | **31,129** | — |
-| **Escalation Rate** | 11.86% (3,317 dies) | 5.98% (1,674 dies) | **`6.22%` (2,027 dies)** | — |
-| **Compute Saved** | 88.14% | 94.02% | **`93.78%` (30,571 dies)**| — |
+| **Escalation Rate** | 11.86% (3,317 dies) | 5.98% (1,674 dies) | **`6.22%` (2,028 dies)** | — |
+| **Compute Saved** | 88.14% | 94.02% | **`93.78%` (30,570 dies)**| — |
 | **Net Defect Gain** | +32 vs Model A | +36 vs Model A | **`+37` vs Model A** | — |
 
 ---
@@ -86,7 +86,7 @@ Authoritative performance across populations, from historical baseline to indepe
 
 * **Asymmetric Cost of Computation:** Parsing raw waveforms for 32,598 dies requires significant memory and CPU/GPU time. Bypassing 93.78% of dies reduces automated test overhead by over 15x.
 * **Intelligent Precision Filtering:** Unconstrained sub-die models run on 100% of dies generate high absolute numbers of false alarms. Confining Model B strictly to the ambiguous zone $[0.295, 0.550]$ preserves an **85.22% precision**.
-* **Defect Recovery Tradeoff:** On the independent 40-wafer test set, B2 rescued **41 out of 176** Model-A false negatives that entered the gate (**23.30% rescue rate**), producing a net gain of +37 defectives captured (513 vs 476) at the expense of only 43 additional false positives across 32,598 dies.
+* **Defect Recovery Tradeoff:** On the independent 40-wafer test set, B2 rescued **41 out of 176** Model-A false negatives that entered the gate (**23.30% rescue rate**), while 4 Model-A true positives were lost, producing a net gain of +37 defectives captured (513 vs 476) at the expense of only 43 additional false positives across 32,598 dies.
 
 ---
 
@@ -225,7 +225,7 @@ LightGBM Engine         PyTorch 1D CNN         Inference Pipeline
 │   ├── live_inference.py     # End-to-end live cascade prediction pipeline
 │   ├── explainability.py     # Occlusion attribution engine
 │   └── block_parser.py       # Sequential 2,000-block feature engineering
-└── tests/                    # Unit and integration test suite (35/35 passing)
+└── tests/                    # Unit and integration test suite (38/38 passing)
 ```
 
 ---
@@ -292,10 +292,10 @@ npm run dev
 
 ## Testing & Build Verification
 
-* **Unit & Integration Tests:** **`35/35 PASS`**
+* **Unit & Integration Tests:** **`38/38 PASS`**
   ```bash
   python3 -m unittest discover tests
-  # Ran 35 tests in 0.758s - OK
+  # Ran 38 tests in 0.827s - OK
   ```
 * **Frontend Production Build:** **`0 Errors`**
   ```bash

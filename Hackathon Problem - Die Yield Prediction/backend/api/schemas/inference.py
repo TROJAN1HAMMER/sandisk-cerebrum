@@ -11,8 +11,8 @@ class SingleDieRequest(BaseModel):
     prob_Model_A: Optional[float] = Field(default=None, description="Pre-computed Model A probability override")
     prob_Model_B: Optional[float] = Field(default=None, description="Pre-computed Model B probability override")
     actual_label: Optional[int] = Field(default=None, description="Ground truth post-test label (0=Pass, 1=Fail)")
-    gate_lower: Optional[float] = Field(default=None, description="Uncertainty lower gate override (default 0.25)")
-    gate_upper: Optional[float] = Field(default=None, description="Uncertainty upper gate override (default 0.55)")
+    gate_lower: Optional[float] = Field(default=None, description="Uncertainty lower gate override (default 0.295)")
+    gate_upper: Optional[float] = Field(default=None, description="Uncertainty upper gate override (default 0.550)")
 
 class DieInferenceResponse(BaseModel):
     wafer_id: str
@@ -36,7 +36,34 @@ class DieInferenceResponse(BaseModel):
     is_correct: Optional[bool] = None
     spatial_signals: Dict[str, float]
     block_signals: Dict[str, float]
+    calibrated_risk: Optional[float] = None
+    calibration_notes: Optional[str] = None
+    evidence_chain: Optional[Dict[str, Any]] = None
     latency_ms: Optional[float] = None
+
+class TcnForensicsResponse(BaseModel):
+    wafer_id: str
+    die_row: int
+    die_col: int
+    sequence_prob_tcn: float
+    peak_block_index: int
+    peak_amplitude: float
+    anomaly_centroid: float
+    anomaly_span_blocks: int
+    saliency_curve: List[float]
+    important_block_ranges: List[Dict[str, Any]]
+    waveform_readings: List[float]
+    tcn_attribution: List[float]
+    peak_attribution_idx: int
+    peak_attribution_value: float
+    anomalous_span_start: int
+    anomalous_span_end: int
+    salient_blocks_count: int
+    interpretation_notes: str
+    role: str = "Multi-Scale Dilated TCN Sequence Feature Extractor (Receptive Field = 256 blocks)"
+    forensic_only: bool = True
+    used_in_production_routing: bool = False
+    disclaimer: str = "FORENSIC SEQUENCE ANALYSIS — Not used for production cascade routing."
 
 class BatchInferenceSummary(BaseModel):
     total_dies: int

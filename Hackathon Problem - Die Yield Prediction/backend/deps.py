@@ -23,7 +23,7 @@ from backend.config import (
 
 # Imports from existing ML engine
 from src.model_a import ModelAWrapper
-from src.model_b import Block1DCNN
+from src.model_b import Block1DCNN, MultiScaleDilatedTCN
 
 logger = logging.getLogger("cerebrum.deps")
 
@@ -33,6 +33,8 @@ class AppState:
         self.model_A: Optional[ModelAWrapper] = None
         self.model_B: Optional[Any] = None
         self.cnn_model: Optional[Block1DCNN] = None
+        self.tcn_model: Optional[MultiScaleDilatedTCN] = None
+        self.calibrator: Optional[Any] = None
         self.device: str = "cpu"
         self.diagnostics_df: Optional[pd.DataFrame] = None
         self.auth_metrics: Optional[Dict[str, Any]] = None
@@ -65,6 +67,8 @@ def init_app_state() -> None:
 
     # 3. Load 1D CNN checkpoint for block occlusion / embeddings
     cnn_path = MODELS_DIR / "cnn_1d_block_model.pt"
+    # 3. Load 1D CNN checkpoint for block occlusion / embeddings
+    cnn_path = MODELS_DIR / "cnn_1d_block_model.pt"
     if cnn_path.exists():
         state.device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
         cnn = Block1DCNN().to(state.device)
@@ -72,6 +76,28 @@ def init_app_state() -> None:
         cnn.eval()
         state.cnn_model = cnn
         logger.info("Loaded PyTorch 1D CNN block model on %s", state.device)
+
+    # 3b. Load Multi-Scale Dilated TCN for Advanced Forensic Sequence Attribution
+    tcn_path = MODELS_DIR / "multiscale_tcn_model.pt"
+    if tcn_path.exists():
+        try:
+            tcn = MultiScaleDilatedTCN().to(state.device)
+            tcn.load_state_dict(torch.load(tcn_path, map_location=state.device))
+            tcn.eval()
+            state.tcn_model = tcn
+            logger.info("Loaded PyTorch Multi-Scale Dilated TCN forensic model on %s", state.device)
+        except Exception as e:
+            logger.warning("Could not load TCN forensic model: %s", e)
+
+    # 3c. Load Isotonic Probability Calibrator for Risk Reporting
+    cal_path = MODELS_DIR / "isotonic_calibrator.pkl"
+    if cal_path.exists():
+        try:
+            with open(cal_path, "rb") as f:
+                state.calibrator = pickle.load(f)
+            logger.info("Loaded Isotonic Probability Calibrator for reporting layer")
+        except Exception as e:
+            logger.warning("Could not load Isotonic calibrator: %s", e)
 
     # 4. Load Authoritative Clean Metrics
     if AUTH_METRICS_PATH.exists():
@@ -108,6 +134,15 @@ def init_app_state() -> None:
         df["decision_Cascade_B"] = np.where(in_gate_b, (df["prob_Model_B"] >= settings.model_b_threshold).astype(int), df["decision_Model_A"])
         df["recovered_FN_Gate_B"] = ((df["actual_label"] == 1) & (df["decision_Model_A"] == 0) & (df["decision_Cascade_B"] == 1)).astype(int)
         
+        # Pre-compute calibrated risk for reporting (EXP-09)
+        if state.calibrator is not None:
+            try:
+                df["calibrated_risk"] = np.round(state.calibrator.predict(df["prob_Cascade_B"].values), 4)
+            except Exception:
+                df["calibrated_risk"] = df["prob_Cascade_B"]
+        else:
+            df["calibrated_risk"] = df["prob_Cascade_B"]
+
         in_gate_c = (df["prob_Model_A"] >= settings.gate_c_lower) & (df["prob_Model_A"] <= settings.gate_c_upper)
         df["in_gate_C"] = in_gate_c
         df["prob_Cascade_C"] = np.where(in_gate_c, df["prob_Model_B"], df["prob_Model_A"])
@@ -160,3 +195,9 @@ def get_demo_samples() -> Optional[Dict[str, Any]]:
 
 def get_model_release() -> Optional[Dict[str, Any]]:
     return state.model_release
+
+def get_tcn_model() -> Optional[MultiScaleDilatedTCN]:
+    return state.tcn_model
+
+def get_calibrator() -> Optional[Any]:
+    return state.calibrator

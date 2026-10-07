@@ -530,8 +530,8 @@ As recorded in `experiments/EXP-04/independent_metrics.json`:
 | **False Negatives (FN)** | **867** | — |
 | **False Positives (FP)** | **89** | — |
 | **True Negatives (TN)** | **31,129** | — |
-| **Escalation Rate to Model B** | **6.22% (2,027 dies)** | — |
-| **Compute Saved (Fast Path)** | **93.78% (30,571 dies)** | — |
+| **Escalation Rate to Model B** | **6.22% (2,028 dies)** | — |
+| **Compute Saved (Fast Path)** | **93.78% (30,570 dies)** | — |
 
 ### 12.3 Rescue Mechanics on the Independent Population
 
@@ -808,15 +808,15 @@ The CNN was formally **decoupled from the classification pathway**. It is deploy
 
 ### 19.2 Cascade Throughput Economics
 On the independent validation set of 32,598 dies:
-- **Fast-Path Passes ($P_A < 0.295$):** 30,571 dies (93.78%)
+- **Fast-Path Passes ($P_A < 0.295$):** 30,570 dies (93.78%)
 - **Fast-Path Fails ($P_A \ge 0.550$):** 79 dies (0.24%)
-- **Secondary Escalations ($0.295 \le P_A < 0.550$):** 2,027 dies (6.22%)
+- **Secondary Escalations ($0.295 \le P_A < 0.550$):** 2,028 dies (6.22%)
 
 **Compute Savings Formula:**
-$$\text{Compute Saved} = 1 - \frac{\text{Escalated Dies}}{\text{Total Dies}} = 1 - \frac{2,027}{32,598} = \mathbf{93.78\%}$$
+$$\text{Compute Saved} = 1 - \frac{\text{Escalated Dies}}{\text{Total Dies}} = 1 - \frac{2,028}{32,598} = \mathbf{93.78\%}$$
 
 If all 32,598 dies required Model B sub-die feature extraction, total inference time would be $\approx 32,598 \times 3.5 \text{ ms} \approx 114.1 \text{ seconds}$. Under the B2 cascade, total inference time is:
-$$\underbrace{(32,598 \times 0.1 \text{ ms})}_{\text{Model A}} + \underbrace{(2,027 \times 3.5 \text{ ms})}_{\text{Model B}} \approx 3.26 \text{ s} + 7.09 \text{ s} \approx \mathbf{10.35 \text{ seconds}}$$
+$$\underbrace{(32,598 \times 0.1 \text{ ms})}_{\text{Model A}} + \underbrace{(2,028 \times 3.5 \text{ ms})}_{\text{Model B}} \approx 3.26 \text{ s} + 7.10 \text{ s} \approx \mathbf{10.36 \text{ seconds}}$$
 This represents a **$11\times$ wall-clock throughput acceleration**, critical for high-volume automated test floors.
 
 ---
@@ -893,9 +893,10 @@ For escalated dies, the workstation renders the 2,000-block memory reading serie
 │   ├── live_inference.py              # Production inference pipeline
 │   ├── evaluation_protocol.py         # Authoritative metrics & bootstrap engine
 │   └── explainability.py              # Occlusion attribution & feature importance
-└── tests/                             # Automated Test Suite (35/35 passing)
+└── tests/                             # Automated Test Suite (38/38 passing)
     ├── test_fastapi_backend.py        # 25 Integration tests for API endpoints
-    └── test_model_release_b2.py       # 10 Integrity tests for B2 release manifest
+    ├── test_model_release_b2.py       # 10 Integrity tests for B2 release manifest
+    └── test_live_inference_and_evaluation.py # 3 End-to-end cascade evaluation tests
 ```
 
 ---
@@ -928,14 +929,14 @@ shasum -a 256 models/model_B_original_production_backup.pkl
 
 ## 23. Engineering Validation
 
-### 23.1 Automated Test Suite (35 / 35 PASS)
+### 23.1 Automated Test Suite (38 / 38 PASS)
 The repository enforces strict continuous integration testing across all API routes, data structures, and model contracts:
 ```bash
 python3 -m unittest discover tests
 ```
 **Test Execution Output:**
 ```text
-Ran 35 tests in 0.781s
+Ran 38 tests in 0.827s
 OK
 ```
 The test suite includes:
@@ -1054,10 +1055,10 @@ In EXP-02, a grid search of 6,930 parameter combinations proved that 0.295 is th
 **Answer:** Because `input/test.csv` contains 40 wafers and 32,598 dies that were never seen during model training, feature selection, or threshold tuning. Continuous ranking metrics—PR-AUC (0.4808) and ROC-AUC (0.8078)—actually showed slight positive gains over canonical validation (+0.65% and +1.16%), proving that the model learned true physical defect mechanisms rather than dataset artifacts.
 
 ### Q10: What Does 93.78% Compute Saved Mean in Practice?
-**Answer:** Out of 32,598 incoming dies, 30,571 dies received $P_A < 0.295$ and were immediately cleared. Only 2,027 dies required parsing 2,000 sub-die floats, computing rolling filters, and evaluating Model B. This slashes test floor compute requirements by 93.78%.
+**Answer:** Out of 32,598 incoming dies, 30,570 dies received $P_A < 0.295$ and were immediately cleared. Only 2,028 dies required parsing 2,000 sub-die floats, computing rolling filters, and evaluating Model B. This slashes test floor compute requirements by 93.78%.
 
 ### Q11: What Does the 23.3% Rescue Rate Mean?
-**Answer:** Model A alone would have missed 176 defects that fell into the gating band $[0.295, 0.550]$. Model B successfully identified and rescued **41 of those 176 false negatives** ($41 / 176 = 23.30\%$), while only misclassifying 4 true positives, delivering a net gain of +37 defectives captured.
+**Answer:** Model A alone would have missed 176 defects that fell into the gating band $[0.295, 0.550]$. Model B successfully identified and rescued **41 of those 176 false negatives** ($41 / 176 = 23.30\%$), while 4 Model-A true positives were lost, delivering a net gain of +37 defectives captured.
 
 ### Q12: Why Should a Semiconductor Company Care About This Architecture?
 **Answer:** Semiconductor fabs run on razor-thin yield margins. Cerebrum delivers:
@@ -1089,7 +1090,7 @@ Engineered 10 multi-threshold & local prominence features into 536-feature Model
 Independently validated on 40 unseen wafers / 32,598 dies (PR-AUC 0.4808, ROC-AUC 0.8078, 85.2% precision)
       │
       ▼ (Productization)
-Froze Candidate B2 • Decoupled CNN attribution • Synchronized full-stack platform • 35/35 Tests Passing
+Froze Candidate B2 • Decoupled CNN attribution • Synchronized full-stack platform • 38/38 Tests Passing
 ```
 
 > **"The final SanDisk Cerebrum system is not simply a higher-scoring classifier. It is a selective yield-intelligence pipeline engineered to balance defect recovery, false alarms, inference throughput, interpretability, and validation integrity."**

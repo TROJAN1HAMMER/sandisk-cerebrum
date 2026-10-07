@@ -66,6 +66,76 @@ class Block1DCNN(nn.Module):
         return logits.squeeze(-1)
 
 
+class MultiScaleDilatedTCN(nn.Module):
+    """
+    Multi-Scale Dilated Temporal Convolutional Network.
+    Combines parallel receptive fields with dilations d=1, d=2, d=4, d=8
+    and residual skip connections for 2,000-block sequence inspection.
+    """
+    def __init__(self, in_channels=1, embedding_dim=32):
+        super(MultiScaleDilatedTCN, self).__init__()
+        
+        # Stem Conv
+        self.stem = nn.Sequential(
+            nn.Conv1d(in_channels, 16, kernel_size=7, stride=2, padding=3),
+            nn.BatchNorm1d(16),
+            nn.ReLU(),
+            nn.MaxPool1d(2) # 2000 -> 500
+        )
+        
+        # Multi-Scale Dilated Inception Block
+        self.conv_d1 = nn.Conv1d(16, 16, kernel_size=3, padding=1, dilation=1)
+        self.conv_d2 = nn.Conv1d(16, 16, kernel_size=3, padding=2, dilation=2)
+        self.conv_d4 = nn.Conv1d(16, 16, kernel_size=3, padding=4, dilation=4)
+        self.conv_pool = nn.Sequential(
+            nn.MaxPool1d(kernel_size=3, stride=1, padding=1),
+            nn.Conv1d(16, 16, kernel_size=1)
+        )
+        self.bn_ms = nn.BatchNorm1d(64)
+        self.relu_ms = nn.ReLU()
+        self.res_proj = nn.Conv1d(16, 64, kernel_size=1)
+        
+        # Stage 2: Temporal compression
+        self.stage2 = nn.Sequential(
+            nn.Conv1d(64, 64, kernel_size=5, stride=2, padding=2), # 500 -> 250
+            nn.BatchNorm1d(64),
+            nn.ReLU(),
+            nn.Conv1d(64, 64, kernel_size=3, stride=2, padding=1, dilation=2), # 250 -> 125
+            nn.BatchNorm1d(64),
+            nn.ReLU()
+        )
+        
+        # Global Pooling & Projection Head
+        self.gap = nn.AdaptiveAvgPool1d(1)
+        self.fc_embed = nn.Sequential(
+            nn.Linear(64, embedding_dim),
+            nn.BatchNorm1d(embedding_dim),
+            nn.ReLU(),
+            nn.Dropout(0.3)
+        )
+        self.out_head = nn.Linear(embedding_dim, 1)
+
+    def extract_embedding(self, x):
+        out = self.stem(x)
+        branch1 = self.conv_d1(out)
+        branch2 = self.conv_d2(out)
+        branch3 = self.conv_d4(out)
+        branch4 = self.conv_pool(out)
+        ms_cat = torch.cat([branch1, branch2, branch3, branch4], dim=1)
+        res = self.res_proj(out)
+        out = self.relu_ms(self.bn_ms(ms_cat) + res)
+        
+        out = self.stage2(out)
+        out = self.gap(out).squeeze(-1)
+        embed = self.fc_embed(out)
+        return embed
+
+    def forward(self, x):
+        embed = self.extract_embedding(x)
+        logits = self.out_head(embed).squeeze(-1)
+        return logits
+
+
 def _get_model_outputs_in_batches(model, tensor_x, batch_size=512, device='cpu'):
     """Batched forward pass to prevent GPU/MPS out-of-memory errors."""
     model.eval()
@@ -184,4 +254,68 @@ class MultiResolutionModelB:
         if threshold is None:
             threshold = self.optimal_threshold
         probs = self.predict_proba(X_val_A, val_cnn_embeds)
+        return (probs >= threshold).astype(int)
+
+
+class CandidateModelBWrapper:
+    """
+    Wrapper for Validated Candidate Model B (B3 Candidate: 528 Tabular Features + 1D-CNN Late Fusion).
+    Architecture:
+      p_final = 0.90 * p_tabular(528 features) + 0.10 * p_cnn(2,000 blocks)
+    Threshold: tau_B = 0.5200 (Default Candidate Operating Threshold)
+    """
+    def __init__(self, candidates_dir=None, models_dir=None, device=None):
+        import pickle
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if candidates_dir is None:
+            candidates_dir = os.path.join(base_dir, 'models', 'candidates')
+        if models_dir is None:
+            models_dir = os.path.join(base_dir, 'models')
+            
+        self.tab_model_path = os.path.join(candidates_dir, 'model_B_tab_enhanced.pkl')
+        self.cnn_path = os.path.join(models_dir, 'cnn_1d_block_model.pt')
+        self.optimal_threshold = 0.5200
+        self.n_tabular_features = 528
+        
+        # Load tabular LightGBM
+        with open(self.tab_model_path, 'rb') as f:
+            self.tab_model = pickle.load(f)
+            self.feature_names = list(self.tab_model.feature_name_) if hasattr(self.tab_model, 'feature_name_') else [f'f_{i}' for i in range(528)]
+            
+        # Load 1D-CNN
+        if device is None:
+            device = 'cuda' if torch.cuda.is_available() else ('mps' if torch.backends.mps.is_available() else 'cpu')
+        self.device = device
+        self.cnn_model = Block1DCNN().to(self.device)
+        self.cnn_model.load_state_dict(torch.load(self.cnn_path, map_location=self.device))
+        self.cnn_model.eval()
+
+    def extract_features(self, X_A_cand, block_matrix):
+        """Combine 517 Model A features with 11 physics-informed block burst features."""
+        from src.block_parser import extract_B3_candidate_block_features
+        bstats = extract_B3_candidate_block_features(block_matrix)
+        return pd.concat([X_A_cand, bstats], axis=1)
+
+    def predict_proba(self, X_B_cand, block_matrix):
+        """
+        Dual-Stream Late Probability Fusion:
+        p_final = 0.90 * p_tab + 0.10 * p_cnn
+        """
+        # 1. Tabular prediction
+        p_tab = self.tab_model.predict_proba(X_B_cand)[:, 1]
+        
+        # 2. 1D CNN prediction
+        norm_blocks = (block_matrix - 100.0) / 15.0
+        tensor_x = torch.tensor(norm_blocks, dtype=torch.float32).unsqueeze(1)
+        _, p_cnn = _get_model_outputs_in_batches(self.cnn_model, tensor_x, batch_size=512, device=self.device)
+        
+        # 3. Late Fusion Blend
+        p_final = 0.90 * p_tab + 0.10 * p_cnn
+        return p_final
+
+    def predict(self, X_B_cand, block_matrix, threshold=None):
+        """Predict binary failure class using Candidate Model B."""
+        if threshold is None:
+            threshold = self.optimal_threshold
+        probs = self.predict_proba(X_B_cand, block_matrix)
         return (probs >= threshold).astype(int)

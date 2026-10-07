@@ -52,8 +52,8 @@
 | **False Negatives (FN)** | 667 | 663 | **867** | — |
 | **False Positives (FP)** | 89 | 47 | **89** | — |
 | **True Negatives (TN)** | 26,827 | 26,869 | **31,129** | — |
-| **Escalation Rate to Model B** | `11.86%` | `5.98%` | **`6.22%` (2,027 dies)** | — |
-| **Block Compute Saved** | `88.14%` | `94.02%` | **`93.78%` (30,571 dies)** | — |
+| **Escalation Rate to Model B** | `11.86%` | `5.98%` | **`6.22%` (2,028 dies)** | — |
+| **Block Compute Saved** | `88.14%` | `94.02%` | **`93.78%` (30,570 dies)** | — |
 | **Model A FN Rescued by B2** | — | 36 / 138 (26.09%) | **41 / 176 (23.30%)** | — |
 | **Net Defect Gain vs Model A** | +32 | +36 | **+37 defects** (513 vs 476) | — |
 
@@ -61,7 +61,7 @@
 
 ## 4. Software & Platform Verifications
 
-- **Unit & Integration Tests:** **35 / 35 PASS** (`python3 -m unittest discover tests`)
+- **Unit & Integration Tests:** **38 / 38 PASS** (`python3 -m unittest discover tests`)
 - **Frontend Production Build:** **PASS (0 errors)** (`tsc && vite build`)
 - **Active Model B SHA-256:** `8877db7b55abcb8a7c28b9de6f662bb3dfacbbcfbdcacac6da0deeaf5314e09a`
 - **Archival B0 Backup SHA-256:** `3f29d1d9b6ac1eb5b11bdc8db47238373eb219f67a86d2eff0007e6dbc58ef24`
@@ -76,7 +76,7 @@
 2. **Selective Uncertainty Gating (EXP-02):** Replaced arbitrary symmetric thresholds with an asymmetric uncertainty band $[0.295, 0.550]$, slashing Model B escalations by ~50% while cutting compute overhead by **93.78%** without sacrificing recall.
 3. **Multi-Threshold & Local Prominence Block Signals (EXP-03):** Replaced vulnerable legacy cluster measures with 10 robust anomaly features (`cnt_110`, `cnt_115`, `cnt_120`, `cluster_area_110/115`, `max_roll20`, `max_roll20_dev`, `max_roll20_rel`, `peak_prominence`, `top10_dev`) that differentiate true localized physical defects from baseline background drift.
 4. **Independent Population Validation (EXP-04):** Verified the frozen candidate on 40 completely unobserved ground-truth wafers (32,598 dies). Proved that ranking discrimination generalizes stably: PR-AUC improved from `0.4777` to `0.4808` (+0.65%) and ROC-AUC improved from `0.7986` to `0.8078` (+1.16%).
-5. **Net Defect Recovery Tradeoff:** Rescued 41 Model-A false negatives entering Model B (23.30% rescue rate), yielding a net gain of +37 defectives captured (513 vs 476) at the cost of only +43 false alarms across 32,598 dies.
+5. **Net Defect Recovery Tradeoff:** Rescued 41 Model-A false negatives entering Model B (23.30% rescue rate), while 4 Model-A true positives were lost, yielding a net gain of +37 defectives captured (513 vs 476) at the cost of only +43 false alarms across 32,598 dies.
 
 ---
 
@@ -87,3 +87,28 @@
 3. **CNN Embedding Degradation:** Concatenating deep CNN latent representations directly into LightGBM degraded tabular tree splits due to dimensionality mismatch; CNN is restricted to explainability/attribution.
 4. **Static Fab Benchmark Horizon:** Evaluated on benchmark lots from a single fabrication node; real-world temporal sensor drift across tool PM cycles has not been modeled.
 5. **Uniform Defect Loss Asymmetry:** The current operating point optimizes balanced F1/F2 rather than a dollar-denominated loss matrix specific to downstream packaging packaging costs vs scrap costs.
+
+---
+
+## 7. Post-B2 Candidate Integration — B3-DualStream
+
+| Dimension | Active Production (B2) | Validated Staged Candidate (B3-DualStream) | Experimental High-Recall Policy |
+|---|---|---|---|
+| **Status** | **ACTIVE PRODUCTION STANDARD** | **VALIDATED STAGED CANDIDATE** | **EXPERIMENTAL POLICY (NOT PROD)** |
+| **Architecture** | LightGBM Coarse + Fine Cascade | LightGBM + 1D-CNN Late Prob Fusion | LightGBM + 1D-CNN Late Prob Fusion |
+| **Model A Features** | 506 features | 517 features (polar + PCA residuals) | 517 features |
+| **Model B Features** | 536 features | 528 tabular + 2,000-block 1D-CNN | 528 tabular + 2,000-block 1D-CNN |
+| **Uncertainty Gate** | $[0.295, 0.550]$ | $[0.250, 0.550]$ | $[0.200, 0.500]$ |
+| **Thresholds** | $\tau_A = 0.5100, \tau_B = 0.5376$ | $\tau_A = 0.5100, \tau_B = 0.5200$ | $\tau_A = 0.5100, \tau_B = 0.5000$ |
+| **EXP-04 F1 Score** | **0.5177** | **0.5264** (+0.0087 Δ) | **0.5271** |
+| **EXP-04 Precision** | 85.22% | 87.67% (+2.45 pp Δ) | 82.31% |
+| **EXP-04 Recall** | 37.17% | 37.61% (+0.44 pp Δ) | 38.77% |
+| **EXP-04 PR-AUC** | 0.4808 | 0.5004 (+0.0196 Δ) | 0.5092 |
+| **EXP-04 TP / FP / FN** | 513 / 89 / 867 | 519 / 73 / 861 (+6 TP, -16 FP) | 535 / 115 / 625 |
+| **EXP-04 Compute Saved** | 93.78% | 96.05% (+2.27 pp Δ, 740 fewer escalations) | 92.63% |
+| **Holdout F1 / Precision** | 0.5254 / **89.32%** (47 FP) | 0.5291 / **81.78%** (**92 FP**) | — |
+| **Inference Fast Path** | Pure LightGBM (sub-ms, no GPU) | PyTorch late fusion on escalated dies | PyTorch late fusion on escalated dies |
+| **Storage Location** | `models/model_{A,B}.pkl` | `models/candidates/` | Runtime toggle in policy simulator |
+
+> **Governance Principle:** B3-DualStream demonstrated improved performance on the frozen EXP-04 independent population (+0.0087 F1, 16 fewer FPs) and is retained as a validated staged candidate pending broader multi-lot qualification. B2 remains active production standard due to superior false-alarm resistance on canonical holdout (47 vs 92 FP) and zero deep learning latency overhead in the fast screening path.
+

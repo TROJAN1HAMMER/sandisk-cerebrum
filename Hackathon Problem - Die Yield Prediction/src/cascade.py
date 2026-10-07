@@ -112,3 +112,75 @@ class SelectiveCascadeClassifier:
             'risk_categories': risk_categories,
             'gate_mask': gate_mask
         }
+
+
+class DualStreamCandidateCascade:
+    """
+    B3 Candidate Cascade Classifier:
+    - Coarse Evaluation: Candidate Model A (517 features, tau_A = 0.5100)
+    - Cascade Gate: [lower_gate, upper_gate] (Default: [0.250, 0.550])
+    - Escalated Evaluation: Candidate Model B Dual-Stream Late Fusion (528 tabular + 1D-CNN, tau_B = 0.5200)
+    - Supports High-Recall Experimental Mode: Gate [0.20, 0.50], tau_B = 0.5000
+    """
+    def __init__(self, cand_model_A=None, cand_model_B=None, lower_gate=0.25, upper_gate=0.55, tau_A=0.5100, tau_B=0.5200):
+        from src.model_a import CandidateModelAWrapper
+        from src.model_b import CandidateModelBWrapper
+        
+        self.cand_model_A = cand_model_A if cand_model_A is not None else CandidateModelAWrapper()
+        self.cand_model_B = cand_model_B if cand_model_B is not None else CandidateModelBWrapper()
+        self.lower_gate = lower_gate
+        self.upper_gate = upper_gate
+        self.tau_A = tau_A
+        self.tau_B = tau_B
+
+    def set_policy(self, policy="candidate_standard"):
+        """Configure cascade policy (standard candidate vs experimental high-recall)."""
+        if policy == "high_recall":
+            self.lower_gate = 0.20
+            self.upper_gate = 0.50
+            self.tau_A = 0.5100
+            self.tau_B = 0.5000
+        else: # candidate_standard
+            self.lower_gate = 0.25
+            self.upper_gate = 0.55
+            self.tau_A = 0.5100
+            self.tau_B = 0.5200
+
+    def predict_cascade(self, X_A_cand, X_B_cand, block_matrix):
+        """
+        Execute Candidate Cascade Routing:
+        - Confident pass: p_A < lower_gate -> decision = 0
+        - Confident fail: p_A > upper_gate -> decision = (p_A >= tau_A)
+        - Escalated zone: lower_gate <= p_A <= upper_gate -> evaluated by Dual-Stream Model B
+        """
+        p_A = self.cand_model_A.predict_proba(X_A_cand)
+        n = len(p_A)
+        
+        esc_mask = (p_A >= self.lower_gate) & (p_A <= self.upper_gate)
+        p_cascade = np.copy(p_A)
+        preds_cascade = np.zeros(n, dtype=int)
+        
+        # Fast path passes
+        pass_mask = (p_A < self.lower_gate)
+        preds_cascade[pass_mask] = 0
+        
+        # Fast path fails
+        fail_mask = (p_A > self.upper_gate)
+        preds_cascade[fail_mask] = (p_A[fail_mask] >= self.tau_A).astype(int)
+        
+        # Escalated cohort evaluated by Model B
+        if esc_mask.any():
+            # Model B inference on escalated cohort only
+            p_B_esc = self.cand_model_B.predict_proba(X_B_cand[esc_mask], block_matrix[esc_mask])
+            p_cascade[esc_mask] = p_B_esc
+            preds_cascade[esc_mask] = (p_B_esc >= self.tau_B).astype(int)
+            
+        return {
+            'p_A': p_A,
+            'p_cascade': p_cascade,
+            'preds_cascade': preds_cascade,
+            'escalated_mask': esc_mask,
+            'escalation_count': int(esc_mask.sum()),
+            'escalation_rate_pct': float(esc_mask.mean() * 100.0),
+            'compute_saved_pct': float((1.0 - esc_mask.mean()) * 100.0)
+        }

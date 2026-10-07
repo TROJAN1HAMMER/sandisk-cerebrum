@@ -80,7 +80,7 @@ export const ModelLab: React.FC = () => {
         subtitle="Final validated configuration with selective asymmetric gate and enhanced sub-die representation."
       >
         <div className="space-y-4 p-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Historical B0 Baseline */}
             <div className="p-4 rounded-lg bg-silicon-elevated border border-silicon-border space-y-3 font-mono text-xs">
               <div className="flex items-center justify-between border-b border-silicon-border/80 pb-2">
@@ -95,11 +95,11 @@ export const ModelLab: React.FC = () => {
               <div className="space-y-1.5 text-content-secondary">
                 <div className="flex justify-between">
                   <span className="text-content-muted">Model Family:</span>
-                  <span className="text-content-primary">LightGBM Selective Cascade</span>
+                  <span className="text-content-primary">LightGBM Cascade</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Model B Features:</span>
-                  <span className="text-content-primary">526 (Legacy 20 Block Features)</span>
+                  <span className="text-content-primary">526 (20 Block Feats)</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Spatial Defect Density:</span>
@@ -115,34 +115,34 @@ export const ModelLab: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Eval Population:</span>
-                  <span className="text-content-primary">Canonical 32 Wafers (27,972 dies)</span>
+                  <span className="text-content-primary">Canonical 32 Wafers</span>
                 </div>
                 <div className="flex justify-between border-t border-silicon-border/60 pt-1.5 font-bold">
                   <span className="text-content-muted">Cascade F1:</span>
-                  <span className="text-content-primary">0.5072 (88.14% Compute Saved)</span>
+                  <span className="text-content-primary">0.5072 (88.14% Saved)</span>
                 </div>
               </div>
             </div>
 
-            {/* Frozen B2 Candidate */}
-            <div className="p-4 rounded-lg bg-silicon-elevated border border-telemetry-green/40 space-y-3 font-mono text-xs shadow-sm">
+            {/* Frozen B2 Active Production */}
+            <div className="p-4 rounded-lg bg-silicon-elevated border border-telemetry-green/50 space-y-3 font-mono text-xs shadow-sm ring-1 ring-telemetry-green/30">
               <div className="flex items-center justify-between border-b border-silicon-border/80 pb-2">
                 <span className="font-bold text-telemetry-green flex items-center gap-1.5">
                   <Award className="w-4 h-4 text-telemetry-green" />
-                  ACTIVE PRODUCTION CANDIDATE (B2)
+                  ACTIVE PRODUCTION (B2)
                 </span>
                 <span className="px-2 py-0.5 rounded bg-telemetry-green/15 text-telemetry-green text-[10px] font-bold">
-                  FROZEN PROMOTION
+                  FROZEN CONTROL
                 </span>
               </div>
               <div className="space-y-1.5 text-content-secondary">
                 <div className="flex justify-between">
                   <span className="text-content-muted">Model Family:</span>
-                  <span className="text-content-primary">LightGBM Selective Cascade</span>
+                  <span className="text-content-primary">LightGBM Cascade</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Model B Features:</span>
-                  <span className="text-telemetry-green font-bold">536 (30 Block Features)</span>
+                  <span className="text-telemetry-green font-bold">536 (30 Block Feats)</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Spatial Defect Density:</span>
@@ -150,7 +150,7 @@ export const ModelLab: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Gate Window:</span>
-                  <span className="text-telemetry-cyan font-bold">[0.295, 0.550] (Asymmetric)</span>
+                  <span className="text-telemetry-cyan font-bold">[0.295, 0.550] (Asym)</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Thresholds:</span>
@@ -158,11 +158,62 @@ export const ModelLab: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Eval Population:</span>
-                  <span className="text-telemetry-cyan">Independent 40 Wafers (32,598 dies)</span>
+                  <span className="text-telemetry-cyan">Independent 40 Wafers</span>
                 </div>
                 <div className="flex justify-between border-t border-silicon-border/60 pt-1.5 font-bold">
                   <span className="text-content-muted">Cascade F1:</span>
-                  <span className="text-telemetry-green">0.5177 (93.78% Compute Saved)</span>
+                  <span className="text-telemetry-green">0.5177 (93.78% Saved)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Candidate B3-DualStream */}
+            <div className="p-4 rounded-lg bg-silicon-elevated border border-telemetry-purple/40 space-y-3 font-mono text-xs shadow-sm">
+              <div className="flex items-center justify-between border-b border-silicon-border/80 pb-2">
+                <span className="font-bold text-telemetry-purple flex items-center gap-1.5">
+                  <Zap className="w-4 h-4 text-telemetry-purple" />
+                  VALIDATED CANDIDATE (B3)
+                </span>
+                <span className="px-2 py-0.5 rounded bg-telemetry-purple/15 text-telemetry-purple text-[10px] font-bold">
+                  STAGED CANDIDATE
+                </span>
+              </div>
+              <div className="space-y-1.5 text-content-secondary">
+                <div className="flex justify-between">
+                  <span className="text-content-muted">Model Family:</span>
+                  <span className="text-content-primary">Dual-Stream Fusion</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-content-muted">Model A Features:</span>
+                  <span className="text-telemetry-purple font-bold">517 Features</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-content-muted">Model B Features:</span>
+                  <span className="text-telemetry-purple font-bold">528 Tab + 1D-CNN</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-content-muted">CNN Modality:</span>
+                  <span className="text-content-primary">2,000-Block Sequence</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-content-muted">Novel Architecture:</span>
+                  <span className="text-telemetry-purple">Polar Spatial + PCA (k=25)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-content-muted">Gate Window:</span>
+                  <span className="text-telemetry-cyan font-bold">[0.250, 0.550]</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-content-muted">Thresholds:</span>
+                  <span className="text-content-primary">τ_A = 0.5100, τ_B = 0.5200</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-content-muted">Eval Population:</span>
+                  <span className="text-telemetry-cyan">Independent 40 Wafers</span>
+                </div>
+                <div className="flex justify-between border-t border-silicon-border/60 pt-1.5 font-bold">
+                  <span className="text-content-muted">Cascade F1:</span>
+                  <span className="text-telemetry-purple font-bold">0.5264 (96.05% Saved)</span>
                 </div>
               </div>
             </div>
@@ -246,6 +297,140 @@ export const ModelLab: React.FC = () => {
           data={benchmark.gate_sweep_rows}
           keyExtractor={(_, i) => i}
         />
+      </Panel>
+
+      {/* Model Evolution & Evidence-Driven Model Selection Panel */}
+      <Panel
+        title="Evidence-Driven Model Evolution & Architecture Decisions"
+        subtitle="Rigorous empirical testing trajectory: retained only components with measurable, validated gains."
+      >
+        <div className="space-y-4 p-2 font-mono text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            <div className="p-3.5 rounded-lg bg-silicon-elevated border border-silicon-border space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-content-primary">EXP-05: Late Probability Stacking</span>
+                <span className="px-2 py-0.5 rounded text-[10px] bg-telemetry-red/20 text-telemetry-red border border-telemetry-red/40 font-bold">
+                  REJECTED
+                </span>
+              </div>
+              <p className="text-[11px] text-content-secondary leading-relaxed font-sans">
+                Logistic regression probability stacking on holdout caused probability distortion and destroyed cascade gating separation without improving F1.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-lg bg-silicon-elevated border border-silicon-border space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-content-primary">EXP-06: XGBoost + CatBoost Ensemble</span>
+                <span className="px-2 py-0.5 rounded text-[10px] bg-telemetry-red/20 text-telemetry-red border border-telemetry-red/40 font-bold">
+                  REJECTED
+                </span>
+              </div>
+              <p className="text-[11px] text-content-secondary leading-relaxed font-sans">
+                Heavy multi-library ensemble increased per-die inference latency by 3.8× while F1 showed negligible variation (+0.0011). Did not justify production complexity.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-lg bg-silicon-elevated border border-silicon-border space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-content-primary">EXP-07: FFT / Kurtosis / Run-Length</span>
+                <span className="px-2 py-0.5 rounded text-[10px] bg-telemetry-red/20 text-telemetry-red border border-telemetry-red/40 font-bold">
+                  REJECTED
+                </span>
+              </div>
+              <p className="text-[11px] text-content-secondary leading-relaxed font-sans">
+                FFT spectral harmonics and run-length features added 42 dimensions but caused feature redundancy, slightly degrading F1 (-0.0038).
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-lg bg-silicon-elevated border border-silicon-border space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-content-primary">EXP-08: Multi-Scale Dilated TCN</span>
+                <span className="px-2 py-0.5 rounded text-[10px] bg-telemetry-purple/20 text-telemetry-purple border border-telemetry-purple/40 font-bold">
+                  RETAINED FOR FORENSICS
+                </span>
+              </div>
+              <p className="text-[11px] text-content-secondary leading-relaxed font-sans">
+                Replacing GBDT tabular decisioning failed to match B2 precision, but multi-scale TCN saliency gradient attribution proved superior for 2,000-block waveform forensics.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-lg bg-silicon-elevated border border-silicon-border space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-content-primary">EXP-09: Isotonic Risk Calibration</span>
+                <span className="px-2 py-0.5 rounded text-[10px] bg-telemetry-green/20 text-telemetry-green border border-telemetry-green/40 font-bold">
+                  RETAINED FOR REPORTING
+                </span>
+              </div>
+              <p className="text-[11px] text-content-secondary leading-relaxed font-sans">
+                Reduced Expected Calibration Error (ECE) from 0.1250 to 0.0035 (-97.2%). Retained strictly for risk interpretation while keeping production routing thresholds frozen.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-lg bg-silicon-elevated border border-silicon-border space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-content-primary">EXP-10: Context-Aware Intelligence</span>
+                <span className="px-2 py-0.5 rounded text-[10px] bg-telemetry-red/20 text-telemetry-red border border-telemetry-red/40 font-bold">
+                  REJECTED
+                </span>
+              </div>
+              <p className="text-[11px] text-content-secondary leading-relaxed font-sans">
+                Spatial ring cluster aggregations and reticle neighborhood features introduced wafer-level variance overfitting without exceeding the frozen B2 validation baseline.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Panel>
+
+      {/* Production Architecture & Dataflow Diagram Panel */}
+      <Panel
+        title="Technical Architecture: Dual-Stream Production & Forensic Pipeline"
+        subtitle="Strict separation between frozen production decisioning, forensic waveform attribution, and calibrated risk reporting."
+      >
+        <div className="p-4 bg-silicon-elevated rounded-lg border border-silicon-border space-y-4 font-mono text-xs">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Stream 1 */}
+            <div className="p-3 rounded bg-silicon-canvas border border-silicon-border space-y-2">
+              <div className="text-telemetry-cyan font-bold flex items-center gap-1.5">
+                <Cpu className="w-4 h-4" /> 1. PRODUCTION DECISION STREAM
+              </div>
+              <div className="space-y-1 text-content-secondary text-[11px]">
+                <div>• Stage 1: LightGBM Model A (506 feats)</div>
+                <div>• Uncertainty Gate: [0.295, 0.550]</div>
+                <div>• Stage 2: LightGBM Model B2 (536 feats)</div>
+                <div>• Frozen Thresholds: τ_A=0.5100, τ_B=0.5376</div>
+                <div className="text-telemetry-green font-semibold">• 93.78% compute saved • 85.22% precision</div>
+              </div>
+            </div>
+
+            {/* Stream 2 */}
+            <div className="p-3 rounded bg-silicon-canvas border border-silicon-border space-y-2">
+              <div className="text-telemetry-purple font-bold flex items-center gap-1.5">
+                <Zap className="w-4 h-4" /> 2. FORENSIC WAVEFORM STREAM
+              </div>
+              <div className="space-y-1 text-content-secondary text-[11px]">
+                <div>• 2,000-Block Voltage Readings</div>
+                <div>• Multi-Scale Dilated TCN (rf=256)</div>
+                <div>• Input-Gradient Saliency Attribution</div>
+                <div>• Anomaly Span Localization</div>
+                <div className="text-telemetry-purple font-semibold">• Strictly forensic (never alters routing)</div>
+              </div>
+            </div>
+
+            {/* Stream 3 */}
+            <div className="p-3 rounded bg-silicon-canvas border border-silicon-border space-y-2">
+              <div className="text-telemetry-green font-bold flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4" /> 3. RISK REPORTING STREAM
+              </div>
+              <div className="space-y-1 text-content-secondary text-[11px]">
+                <div>• Isotonic Calibrator (EXP-09)</div>
+                <div>• ECE: 0.0035 (-97.2% error)</div>
+                <div>• Calibrated Risk Indicator for Fab Planning</div>
+                <div>• Yield-at-Risk Spatial Concentration</div>
+                <div className="text-telemetry-green font-semibold">• Planning & yield exposure quantification</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </Panel>
     </div>
   );

@@ -40,4 +40,15 @@ export const inferenceService = {
     });
     return request<BlockAttributionResponse>(`/api/v1/inference/block-attribution?${params.toString()}`);
   },
+
+  getTcnForensics: (waferId: string, dieRow: number, dieCol: number) => {
+    const params = new URLSearchParams({
+      wafer_id: waferId,
+      die_row: dieRow.toString(),
+      die_col: dieCol.toString(),
+    });
+    return request<import('../types/inference').TcnForensicsResponse>(
+      `/api/v1/inference/tcn-forensics?${params.toString()}`
+    );
+  },
 };

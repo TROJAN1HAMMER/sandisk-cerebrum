@@ -35,6 +35,52 @@ export interface DieInferenceResponse {
   spatial_signals: Record<string, number>;
   block_signals: Record<string, number>;
   latency_ms: number | null;
+  calibrated_risk?: number | null;
+  calibration_notes?: string;
+  evidence_chain?: {
+    electrical: {
+      status: string;
+      detected: boolean;
+      b_max: number;
+      cnt_104: number;
+      nominal_baseline: number;
+      deviation_pct: number;
+      details: string;
+    };
+    spatial: {
+      status: string;
+      detected: boolean;
+      radial_dist: number;
+      edge_dist: number;
+      density_5x5: number;
+      is_edge_die: boolean;
+      details: string;
+    };
+    signal: {
+      status: string;
+      detected: boolean;
+      cluster_area: number;
+      peak_voltage: number;
+      details: string;
+    };
+    neighbourhood: {
+      status: string;
+      detected: boolean;
+      defect_neighbours: number;
+      escalated_neighbours: number;
+      details: string;
+    };
+    model_decision: {
+      status: string;
+      stage1_prob: number;
+      stage1_threshold: number;
+      gated: boolean;
+      stage2_prob: number | null;
+      stage2_threshold: number;
+      final_decision: number;
+      details: string;
+    };
+  };
 }
 
 export interface BatchInferenceSummary {
@@ -96,4 +142,35 @@ export interface BlockAttributionResponse {
   peak_attribution_idx: number;
   peak_attribution_value: number;
   anomalous_blocks_count: number;
+}
+
+export interface TcnForensicsResponse {
+  wafer_id: string;
+  die_row: number;
+  die_col: number;
+  role: string;
+  block_count?: number;
+  sequence_prob_tcn?: number;
+  peak_block_index?: number;
+  peak_amplitude?: number;
+  anomaly_centroid?: number;
+  anomaly_span_blocks?: number;
+  saliency_curve?: number[];
+  important_block_ranges?: Array<{
+    start_block: number;
+    end_block: number;
+    peak_saliency: number;
+    mean_voltage: number;
+  }>;
+  waveform_readings: number[];
+  tcn_attribution: number[];
+  peak_attribution_idx: number;
+  peak_attribution_value: number;
+  anomalous_span_start: number;
+  anomalous_span_end: number;
+  salient_blocks_count: number;
+  interpretation_notes: string;
+  forensic_only?: boolean;
+  used_in_production_routing?: boolean;
+  disclaimer?: string;
 }

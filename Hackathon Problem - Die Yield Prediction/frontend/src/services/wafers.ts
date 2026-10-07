@@ -17,4 +17,7 @@ export const waferService = {
 
   getSingleDie: (waferId: string, dieRow: number, dieCol: number) =>
     request<DiePoint>(`/api/v1/wafers/${waferId}/dies/${dieRow}/${dieCol}`),
+
+  getWaferHotspots: (waferId: string) =>
+    request<import('../types/wafers').WaferHotspotsResponse>(`/api/v1/wafers/${waferId}/hotspots`),
 };

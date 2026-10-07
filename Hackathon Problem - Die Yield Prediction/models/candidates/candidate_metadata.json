@@ -1,0 +1,32 @@
+{
+  "prod_model_A": {
+    "path": "models/model_A.pkl",
+    "sha256": "0ca33068da29c7f951a624b47afdbc50ae9b76c47bfee7e9c0189ba6417f6071",
+    "size_bytes": 1088749
+  },
+  "prod_model_B": {
+    "path": "models/model_B.pkl",
+    "sha256": "8877db7b55abcb8a7c28b9de6f662bb3dfacbbcfbdcacac6da0deeaf5314e09a",
+    "size_bytes": 1089271
+  },
+  "cnn_1d_model": {
+    "path": "models/cnn_1d_block_model.pt",
+    "sha256": "0a081de68dfb0de38bfa1780cf169aab4ab2b4bc5777c8156ac1bed9772160b5",
+    "size_bytes": 175829
+  },
+  "candidate_model_A": {
+    "path": "models/candidates/model_A_enhanced.pkl",
+    "sha256": "e7fef32dcb9042d6d11e2387cfd6426bee9be7bcdb79778aa20a0db4a34f7e23",
+    "size_bytes": 3095817
+  },
+  "candidate_model_B": {
+    "path": "models/candidates/model_B_tab_enhanced.pkl",
+    "sha256": "dc06fdfa55de52717c2d3b858e00433797daf9a9c113d75179b176917e5544a9",
+    "size_bytes": 3352156
+  },
+  "candidate_pca": {
+    "path": "models/candidates/pca_pipeline.pkl",
+    "sha256": "144e32238f11c3203f3e84f78511f2ee5d792ba7c38a11e4e2f8f0e7341bef72",
+    "size_bytes": 57095
+  }
+}

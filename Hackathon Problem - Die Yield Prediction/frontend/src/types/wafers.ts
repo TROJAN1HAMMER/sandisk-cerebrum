@@ -35,9 +35,33 @@ export interface DiePoint {
   edge_dist?: number | null;
   b_max?: number | null;
   cnt_104?: number | null;
+  calibrated_risk?: number | null;
 }
 
 export interface WaferDetailResponse {
   summary: WaferSummaryItem;
   dies: DiePoint[];
+}
+
+export interface HotspotSummaryItem {
+  hotspot_id: string;
+  region_name: string;
+  center_row: number;
+  center_col: number;
+  radius_dies: number;
+  die_count: number;
+  high_risk_die_count: number;
+  observed_defect_count: number;
+  mean_risk_prob: number;
+  defect_density_pct: number;
+  primary_morphology: string;
+  suspicious_signature: string;
+}
+
+export interface WaferHotspotsResponse {
+  wafer_id: string;
+  total_dies: number;
+  total_high_risk_dies: number;
+  hotspots_count: number;
+  hotspots: HotspotSummaryItem[];
 }

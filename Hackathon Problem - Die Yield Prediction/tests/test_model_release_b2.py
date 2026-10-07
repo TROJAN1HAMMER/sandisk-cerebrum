@@ -85,5 +85,25 @@ class TestModelReleaseB2(unittest.TestCase):
         self.assertEqual(data["active_configuration"]["cascade_gate"]["lower"], 0.295)
         self.assertEqual(data["active_configuration"]["cascade_gate"]["upper"], 0.550)
 
+    def test_08_candidate_models_isolation_and_api(self):
+        """Verify Candidate B3 models exist in models/candidates/ and /candidates endpoint returns 200."""
+        cand_dir = os.path.join(self.models_dir, 'candidates')
+        self.assertTrue(os.path.exists(os.path.join(cand_dir, 'model_A_enhanced.pkl')), "Candidate Model A must exist")
+        self.assertTrue(os.path.exists(os.path.join(cand_dir, 'model_B_tab_enhanced.pkl')), "Candidate Model B must exist")
+        self.assertTrue(os.path.exists(os.path.join(cand_dir, 'candidate_metadata.json')), "Candidate metadata must exist")
+
+        from fastapi.testclient import TestClient
+        from backend.main import app
+        client = TestClient(app)
+        resp = client.get("/api/v1/models/candidates")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["active_production_release"], "B2")
+        self.assertEqual(data["candidate_model_version"], "B3-DualStream")
+        self.assertEqual(data["status"], "VALIDATED_EXPERIMENTAL_CANDIDATE")
+        self.assertEqual(data["features"]["model_A_features"], 517)
+        self.assertEqual(data["features"]["model_B_tabular_features"], 528)
+        self.assertIn("evaluation_summary", data)
+
 if __name__ == '__main__':
     unittest.main()

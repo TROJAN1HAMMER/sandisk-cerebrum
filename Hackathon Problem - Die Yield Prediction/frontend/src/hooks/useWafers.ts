@@ -31,3 +31,11 @@ export function useSingleWaferDie(waferId: string, dieRow: number, dieCol: numbe
     enabled: enabled && !!waferId,
   });
 }
+
+export function useWaferHotspots(waferId: string, enabled: boolean = true) {
+  return useQuery({
+    queryKey: ['wafers', 'hotspots', waferId],
+    queryFn: () => waferService.getWaferHotspots(waferId),
+    enabled: enabled && !!waferId,
+  });
+}
