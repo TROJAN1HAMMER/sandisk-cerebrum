@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "evaluated_at": "2026-10-07 21:24:04 UTC",
+    "evaluated_at": "2026-10-07 21:36:21 UTC",
     "validation_dies_evaluated": 27972,
     "validation_wafers_count": 32,
     "actual_failures": 1056,
@@ -8,7 +8,7 @@
     "runtimes": {
       "model_A_time_s": 0.0,
       "model_B_time_s": 0.0,
-      "total_eval_time_s": 0.044
+      "total_eval_time_s": 0.04
     }
   },
   "model_A": {
