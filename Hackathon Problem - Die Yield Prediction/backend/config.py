@@ -23,6 +23,7 @@ BENCHMARK_PATH = RESULTS_DIR / "final_clean_benchmark.csv"
 GATE_SWEEP_PATH = RESULTS_DIR / "cascade_gate_sweep.csv"
 DIAGNOSTICS_PATH = RESULTS_DIR / "val_die_diagnostics.csv"
 PREDICTIONS_PATH = RESULTS_DIR / "clean_model_B_predictions.csv"
+ALL_WAFERS_PATH = RESULTS_DIR / "final_cli_test.csv"
 DEMO_SAMPLES_PATH = RESULTS_DIR / "demo_samples.json"
 RUNTIME_EVAL_JSON_PATH = RESULTS_DIR / "runtime_evaluation_latest.json"
 MODEL_RELEASE_PATH = MODELS_DIR / "model_release.json"
@@ -48,15 +49,17 @@ class Settings(BaseModel):
     
     # Model Thresholds & Cascade Defaults (matching validated engine)
     model_a_threshold: float = 0.5100
-    model_b_threshold: float = 0.5376
-    gate_b_lower: float = 0.25
-    gate_b_upper: float = 0.55
+    model_b_threshold: float = 0.5200
+    gate_b_lower: float = 0.250
+    gate_b_upper: float = 0.550
     gate_c_lower: float = 0.30
     gate_c_upper: float = 0.60
     
-    # Active Validated Production Configuration (EXP-03B confirmed / EXP-04 validated)
-    active_model_version: str = "B2"
-    production_gate_lower: float = 0.295
+    # Active Validated Production Configuration (B3 Multimodal Dual-Stream Cascade)
+    active_model_version: str = "B3"
+    production_gate_lower: float = 0.250
     production_gate_upper: float = 0.550
+    production_tau_a: float = 0.5100
+    production_tau_b: float = 0.5200
 
 settings = Settings()

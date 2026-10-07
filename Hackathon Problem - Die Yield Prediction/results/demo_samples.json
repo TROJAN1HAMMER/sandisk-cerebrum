@@ -1,41 +1,54 @@
 {
   "sample_1_recovered_false_negative": {
-    "wafer_id": "W_N_0056",
-    "die_row": 2,
-    "die_col": 25,
+    "wafer_id": "W_N_0057",
+    "die_row": 32,
+    "die_col": 23,
     "actual_label": 1,
-    "model_A_prob": 0.5053929335201904,
-    "cascade_final_prob": 0.7413995,
+    "model_A_prob": 0.4404,
+    "cascade_final_prob": 0.7691,
     "model_A_decision": 0,
     "cascade_final_decision": 1,
-    "resolution_used": "Model A + Fine-Resolution Inspection",
-    "escalation_reason": "Model A uncertain (0.3 <= P_A=0.505 <= 0.6); escalated to 2,000-block inspection",
-    "description": "Model A missed failure (P_A = 0.467); escalated to fine-resolution 2,000-block 1D CNN inspection which successfully recovered failure (P_final = 0.977)."
+    "resolution_used": "Model A + Dual-Stream Escalation",
+    "escalation_reason": "Model A uncertain (0.250 <= P_A=0.4404 <= 0.550); escalated to Stage 2 inspection",
+    "description": "Model A alone misses defect (P_A = 0.4404 < 0.5100). Enters Gate [0.250, 0.550]; Stage 2 Dual-Stream model escalates risk to 0.7691, successfully rescuing the defect."
   },
   "sample_2_passing_die_untouched": {
-    "wafer_id": "W_N_0056",
+    "wafer_id": "W_N_0057",
+    "die_row": 1,
+    "die_col": 17,
+    "actual_label": 0,
+    "model_A_prob": 0.0751,
+    "cascade_final_prob": 0.0751,
+    "model_A_decision": 0,
+    "cascade_final_decision": 0,
+    "resolution_used": "Model A Fast Path Only",
+    "escalation_reason": "Model A confident PASS (P_A=0.0751 < 0.250)",
+    "description": "Model A confidently passes die (P_A = 0.0751 < 0.250). Stage 2 is bypassed via Fast Path, saving compute while maintaining high throughput."
+  },
+  "sample_3_severe_failure_detected": {
+    "wafer_id": "W_N_0057",
+    "die_row": 4,
+    "die_col": 10,
+    "actual_label": 1,
+    "model_A_prob": 0.9020,
+    "cascade_final_prob": 0.9020,
+    "model_A_decision": 1,
+    "cascade_final_decision": 1,
+    "resolution_used": "Model A Fast Path Only",
+    "escalation_reason": "Model A confident FAIL (P_A=0.9020 > 0.550)",
+    "description": "Model A immediately identifies severe defect (P_A = 0.9020 > 0.550). Fast Path catches failure instantly without wasting secondary compute."
+  },
+  "sample_4_boundary_cleared_yield_protected": {
+    "wafer_id": "W_N_0057",
     "die_row": 0,
     "die_col": 18,
     "actual_label": 0,
-    "model_A_prob": 0.0581126450377125,
-    "cascade_final_prob": 0.058112644,
+    "model_A_prob": 0.2893,
+    "cascade_final_prob": 0.1671,
     "model_A_decision": 0,
     "cascade_final_decision": 0,
-    "resolution_used": "Model A Coarse Only",
-    "escalation_reason": "Model A high confidence PASS (P_A=0.058 < 0.3)",
-    "description": "Model A confidently passed die (P_A = 0.054 < 0.30); fine-resolution inspection bypassed to save compute and preserve 97.5% precision."
-  },
-  "sample_3_severe_failure_detected": {
-    "wafer_id": "W_N_0056",
-    "die_row": 1,
-    "die_col": 16,
-    "actual_label": 1,
-    "model_A_prob": 0.6724879752326672,
-    "cascade_final_prob": 0.672488,
-    "model_A_decision": 1,
-    "cascade_final_decision": 1,
-    "resolution_used": "Model A Coarse Only",
-    "escalation_reason": "Model A high confidence FAIL (P_A=0.672 > 0.6)",
-    "description": "Model A confidently detected severe failure (P_A = 0.912 > 0.60); confirmed failure without needing fine-resolution escalation."
+    "resolution_used": "Model A + Dual-Stream Escalation",
+    "escalation_reason": "Model A boundary risk (0.250 <= P_A=0.2893 <= 0.550); escalated to Stage 2 inspection",
+    "description": "Model A shows borderline risk (P_A = 0.2893); escalated to Stage 2 which confirms die is healthy (P_B = 0.1671 < 0.5200), preventing false alarm and protecting yield."
   }
 }

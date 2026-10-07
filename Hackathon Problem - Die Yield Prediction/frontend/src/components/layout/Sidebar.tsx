@@ -120,14 +120,14 @@ export const Sidebar: React.FC = () => {
           <div className="flex items-center justify-between text-content-secondary">
             <span className="text-content-muted">MODEL:</span>
             <span className="text-telemetry-purple font-semibold">
-              {statusData?.active_model_version || 'B2'}
+              {statusData?.active_model_version || 'B3'}
             </span>
           </div>
 
           <div className="flex items-center justify-between text-content-secondary">
             <span className="text-content-muted">GATE B:</span>
             <span className="text-telemetry-amber font-semibold">
-              {statusData?.production_gate_b_window || '[0.295, 0.550]'}
+              {statusData?.production_gate_b_window || '[0.250, 0.550]'}
             </span>
           </div>
 

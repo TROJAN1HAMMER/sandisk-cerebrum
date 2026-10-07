@@ -19,7 +19,7 @@ from backend.api.schemas.models import (
 
 router = APIRouter(prefix="/models", tags=["Model Analytics & Benchmarks"])
 
-@router.get("/release", summary="Get Official B2 Model Release Metadata")
+@router.get("/release", summary="Get Official B3 Model Release Metadata")
 def get_release(release_meta: Optional[Dict[str, Any]] = Depends(get_model_release)) -> Dict[str, Any]:
     """
     Returns the comprehensive model release metadata, active production configuration,
@@ -28,7 +28,7 @@ def get_release(release_meta: Optional[Dict[str, Any]] = Depends(get_model_relea
     if release_meta is None:
         raise HTTPException(status_code=404, detail={"code": "RELEASE_NOT_FOUND", "message": "Model release metadata not found"})
     res = dict(release_meta)
-    res["evaluation_scope"] = "Active B2 — Independent EXP-04 Validation"
+    res["evaluation_scope"] = "Active B3 — Independent EXP-04 Validation"
     res["dataset_label"] = "Independent Test Set (40 Wafers, 32,598 Dies)"
     return res
 
@@ -240,9 +240,10 @@ def get_candidates() -> Dict[str, Any]:
             exp04_results = json.load(f)
 
     return {
-        "status": "VALIDATED_EXPERIMENTAL_CANDIDATE",
-        "active_production_release": "B2",
+        "status": "PROMOTED_TO_PRODUCTION",
+        "active_production_release": "B3",
         "candidate_model_version": "B3-DualStream",
+        "production_architecture": "LightGBM + 1D-CNN Late Probability Fusion (0.90 / 0.10)",
         "candidate_architecture": "LightGBM + 1D-CNN Late Probability Fusion (0.90 / 0.10)",
         "features": {
             "model_A_features": 517,

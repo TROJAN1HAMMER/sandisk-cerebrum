@@ -66,9 +66,9 @@ class EvaluationRunResponse(BaseModel):
 
 class PolicySimulationRequest(BaseModel):
     tau_A: float = 0.5100
-    gate_lower: float = 0.295
+    gate_lower: float = 0.250
     gate_upper: float = 0.550
-    tau_B: float = 0.5376
+    tau_B: float = 0.5200
     secondary_budget_pct: Optional[float] = None
 
 class PolicySimulationResponse(BaseModel):

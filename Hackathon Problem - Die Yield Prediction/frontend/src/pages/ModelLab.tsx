@@ -8,6 +8,7 @@ import { LoadingSkeleton } from '../components/ui/LoadingSkeleton';
 import { ErrorState } from '../components/ui/ErrorState';
 import { Play, CheckCircle2, ShieldCheck, Flame, GitCommit, Layers, Cpu, Zap, Award } from 'lucide-react';
 import { EvaluationRunResponse } from '../types/models';
+import { Tooltip, InfoTooltip } from '../components/ui/Tooltip';
 
 export const ModelLab: React.FC = () => {
   const { data: benchmark, isLoading, error, refetch } = useModelBenchmark();
@@ -74,10 +75,10 @@ export const ModelLab: React.FC = () => {
         subtitle="Forensic head-to-head comparison across 27,972 canonical holdout dies with dynamic evaluation engine."
       />
 
-      {/* Final Production Candidate: B2 vs Baseline B0 Specification Panel */}
+      {/* Model Evolution: B0 vs B2 vs B3 Specification Panel */}
       <Panel
-        title="Active Model Architecture: B2 Enhanced vs Production Baseline B0"
-        subtitle="Final validated configuration with selective asymmetric gate and enhanced sub-die representation."
+        title="Active Model Architecture: B3 Dual-Stream vs B2 Checkpoint vs B0 Baseline"
+        subtitle="B3 Multimodal Dual-Stream Cascade active in production. B2 preserved as immutable rollback baseline."
       >
         <div className="space-y-4 p-2">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -124,15 +125,15 @@ export const ModelLab: React.FC = () => {
               </div>
             </div>
 
-            {/* Frozen B2 Active Production */}
-            <div className="p-4 rounded-lg bg-silicon-elevated border border-telemetry-green/50 space-y-3 font-mono text-xs shadow-sm ring-1 ring-telemetry-green/30">
+            {/* Preserved B2 Rollback Checkpoint */}
+            <div className="p-4 rounded-lg bg-silicon-elevated border border-telemetry-cyan/40 space-y-3 font-mono text-xs shadow-sm">
               <div className="flex items-center justify-between border-b border-silicon-border/80 pb-2">
-                <span className="font-bold text-telemetry-green flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-telemetry-green" />
-                  ACTIVE PRODUCTION (B2)
+                <span className="font-bold text-telemetry-cyan flex items-center gap-1.5">
+                  <GitCommit className="w-4 h-4 text-telemetry-cyan" />
+                  HISTORICAL CHECKPOINT (B2)
                 </span>
-                <span className="px-2 py-0.5 rounded bg-telemetry-green/15 text-telemetry-green text-[10px] font-bold">
-                  FROZEN CONTROL
+                <span className="px-2 py-0.5 rounded bg-telemetry-cyan/15 text-telemetry-cyan text-[10px] font-bold">
+                  ROLLBACK READY
                 </span>
               </div>
               <div className="space-y-1.5 text-content-secondary">
@@ -142,7 +143,7 @@ export const ModelLab: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Model B Features:</span>
-                  <span className="text-telemetry-green font-bold">536 (30 Block Feats)</span>
+                  <span className="text-content-primary font-bold">536 (30 Block Feats)</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Spatial Defect Density:</span>
@@ -150,7 +151,7 @@ export const ModelLab: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Gate Window:</span>
-                  <span className="text-telemetry-cyan font-bold">[0.295, 0.550] (Asym)</span>
+                  <span className="text-content-primary font-bold">[0.295, 0.550] (Asym)</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Thresholds:</span>
@@ -158,30 +159,30 @@ export const ModelLab: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Eval Population:</span>
-                  <span className="text-telemetry-cyan">Independent 40 Wafers</span>
+                  <span className="text-content-primary">Independent 40 Wafers</span>
                 </div>
                 <div className="flex justify-between border-t border-silicon-border/60 pt-1.5 font-bold">
                   <span className="text-content-muted">Cascade F1:</span>
-                  <span className="text-telemetry-green">0.5177 (93.78% Saved)</span>
+                  <span className="text-telemetry-cyan">0.5177 (93.78% Saved)</span>
                 </div>
               </div>
             </div>
 
-            {/* Candidate B3-DualStream */}
-            <div className="p-4 rounded-lg bg-silicon-elevated border border-telemetry-purple/40 space-y-3 font-mono text-xs shadow-sm">
+            {/* Promoted B3 Active Production */}
+            <div className="p-4 rounded-lg bg-silicon-elevated border border-telemetry-green/50 space-y-3 font-mono text-xs shadow-sm ring-1 ring-telemetry-green/30">
               <div className="flex items-center justify-between border-b border-silicon-border/80 pb-2">
-                <span className="font-bold text-telemetry-purple flex items-center gap-1.5">
-                  <Zap className="w-4 h-4 text-telemetry-purple" />
-                  VALIDATED CANDIDATE (B3)
+                <span className="font-bold text-telemetry-green flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-telemetry-green" />
+                  ACTIVE PRODUCTION (B3)
                 </span>
-                <span className="px-2 py-0.5 rounded bg-telemetry-purple/15 text-telemetry-purple text-[10px] font-bold">
-                  STAGED CANDIDATE
+                <span className="px-2 py-0.5 rounded bg-telemetry-green/15 text-telemetry-green text-[10px] font-bold">
+                  DUAL-STREAM PROMOTED
                 </span>
               </div>
               <div className="space-y-1.5 text-content-secondary">
                 <div className="flex justify-between">
                   <span className="text-content-muted">Model Family:</span>
-                  <span className="text-content-primary">Dual-Stream Fusion</span>
+                  <span className="text-telemetry-green font-bold">Multimodal Dual-Stream</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Model A Features:</span>
@@ -191,21 +192,30 @@ export const ModelLab: React.FC = () => {
                   <span className="text-content-muted">Model B Features:</span>
                   <span className="text-telemetry-purple font-bold">528 Tab + 1D-CNN</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-content-muted">CNN Modality:</span>
-                  <span className="text-content-primary">2,000-Block Sequence</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-content-muted flex items-center">
+                    CNN Modality:
+                    <InfoTooltip text="An additional deep neural model that looks at the die's 2,000-point signal pattern for abnormal behavior." />
+                  </span>
+                  <span className="text-content-primary">2,000-Block (Escalated Only)</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-content-muted">Novel Architecture:</span>
-                  <span className="text-telemetry-purple">Polar Spatial + PCA (k=25)</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-content-muted flex items-center">
+                    Late Fusion:
+                    <InfoTooltip text="Final probability combines 90% tabular tree evidence with 10% raw signal pattern evidence." />
+                  </span>
+                  <span className="text-telemetry-green font-semibold">0.90 Tabular + 0.10 CNN</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-content-muted">Gate Window:</span>
-                  <span className="text-telemetry-cyan font-bold">[0.250, 0.550]</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-content-muted flex items-center">
+                    Gate Window:
+                    <InfoTooltip text="Decides whether this die needs a deeper inspection. Dies with uncertain Model A predictions (0.250 to 0.550) are sent to the second stage." />
+                  </span>
+                  <span className="text-telemetry-cyan font-bold">[0.250, 0.550] (Standard)</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Thresholds:</span>
-                  <span className="text-content-primary">τ_A = 0.5100, τ_B = 0.5200</span>
+                  <span className="text-content-primary font-bold">τ_A = 0.5100, τ_B = 0.5200</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-content-muted">Eval Population:</span>
@@ -213,7 +223,7 @@ export const ModelLab: React.FC = () => {
                 </div>
                 <div className="flex justify-between border-t border-silicon-border/60 pt-1.5 font-bold">
                   <span className="text-content-muted">Cascade F1:</span>
-                  <span className="text-telemetry-purple font-bold">0.5264 (96.05% Saved)</span>
+                  <span className="text-telemetry-green font-bold">0.5264 (96.05% Saved)</span>
                 </div>
               </div>
             </div>
@@ -394,11 +404,11 @@ export const ModelLab: React.FC = () => {
                 <Cpu className="w-4 h-4" /> 1. PRODUCTION DECISION STREAM
               </div>
               <div className="space-y-1 text-content-secondary text-[11px]">
-                <div>• Stage 1: LightGBM Model A (506 feats)</div>
-                <div>• Uncertainty Gate: [0.295, 0.550]</div>
-                <div>• Stage 2: LightGBM Model B2 (536 feats)</div>
-                <div>• Frozen Thresholds: τ_A=0.5100, τ_B=0.5376</div>
-                <div className="text-telemetry-green font-semibold">• 93.78% compute saved • 85.22% precision</div>
+                <div>• Stage 1: LightGBM Model A (517 feats)</div>
+                <div>• Standard Gate: [0.250, 0.550]</div>
+                <div>• Stage 2: Dual-Stream Model B (528 feats + 1D-CNN)</div>
+                <div>• Production Thresholds: τ_A=0.5100, τ_B=0.5200</div>
+                <div className="text-telemetry-green font-semibold">• 96.05% compute saved • 87.67% precision • F1=0.5264</div>
               </div>
             </div>
 

@@ -276,6 +276,7 @@ class CandidateModelBWrapper:
         self.cnn_path = os.path.join(models_dir, 'cnn_1d_block_model.pt')
         self.optimal_threshold = 0.5200
         self.n_tabular_features = 528
+        self.cnn_input_length = 2000
         
         # Load tabular LightGBM
         with open(self.tab_model_path, 'rb') as f:
@@ -294,6 +295,7 @@ class CandidateModelBWrapper:
         """Combine 517 Model A features with 11 physics-informed block burst features."""
         from src.block_parser import extract_B3_candidate_block_features
         bstats = extract_B3_candidate_block_features(block_matrix)
+        bstats.index = X_A_cand.index
         return pd.concat([X_A_cand, bstats], axis=1)
 
     def predict_proba(self, X_B_cand, block_matrix):

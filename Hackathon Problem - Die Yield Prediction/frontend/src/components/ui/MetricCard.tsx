@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
+import { InfoTooltip } from './Tooltip';
 
 export type MetricAccent = 'green' | 'red' | 'amber' | 'blue' | 'purple' | 'cyan' | 'neutral';
 
@@ -11,6 +12,7 @@ interface MetricCardProps {
   accent?: MetricAccent;
   className?: string;
   icon?: React.ReactNode;
+  tooltip?: string;
 }
 
 export const MetricCard: React.FC<MetricCardProps> = ({
@@ -21,6 +23,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   accent = 'neutral',
   className,
   icon,
+  tooltip,
 }) => {
   const accentTextColors: Record<MetricAccent, string> = {
     green: 'text-telemetry-green',
@@ -51,8 +54,9 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       )}
     >
       <div className="flex items-center justify-between gap-2 mb-1.5">
-        <span className="text-xs font-semibold uppercase tracking-wider text-content-muted font-sans truncate">
+        <span className="text-xs font-semibold uppercase tracking-wider text-content-muted font-sans truncate flex items-center">
           {title}
+          {tooltip && <InfoTooltip text={tooltip} />}
         </span>
         {icon && <span className="text-content-muted">{icon}</span>}
         {badge && (

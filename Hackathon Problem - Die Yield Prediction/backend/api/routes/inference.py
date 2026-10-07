@@ -60,18 +60,22 @@ def predict_die(
         "die_col": req.die_col,
     }
 
-    # If coordinates match a die in holdout diagnostics and raw features are omitted,
-    # pull known features to support seamless preset testing
-    if req.prob_Model_A is None and not req.features and state.diagnostics_df is not None:
-        match = state.diagnostics_df[
-            (state.diagnostics_df["wafer_id"] == req.wafer_id) &
-            (state.diagnostics_df["die_row"] == req.die_row) &
-            (state.diagnostics_df["die_col"] == req.die_col)
-        ]
-        if len(match) > 0:
-            row_dict = match.iloc[0].to_dict()
-            for k, v in row_dict.items():
-                die_dict[k] = v
+    # If coordinates match a die in canonical dataset and raw features are omitted,
+    # pull known features to support seamless preset and wafer-click testing
+    if req.prob_Model_A is None and not req.features:
+        source_df = getattr(state, "wafers_df", None)
+        if source_df is None:
+            source_df = state.diagnostics_df
+        if source_df is not None:
+            match = source_df[
+                (source_df["wafer_id"] == req.wafer_id) &
+                (source_df["die_row"] == req.die_row) &
+                (source_df["die_col"] == req.die_col)
+            ]
+            if len(match) > 0:
+                row_dict = match.iloc[0].to_dict()
+                for k, v in row_dict.items():
+                    die_dict[k] = v
 
     if req.features:
         die_dict.update(req.features)

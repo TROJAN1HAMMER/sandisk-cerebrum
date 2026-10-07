@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 
 class SingleDieRequest(BaseModel):
     wafer_id: Optional[str] = "W_TEST_0001"
@@ -7,11 +7,11 @@ class SingleDieRequest(BaseModel):
     die_col: int = Field(..., ge=0, le=50, description="Die column coordinate")
     features: Optional[Dict[str, float]] = Field(default=None, description="Parametric features (feature_1 .. feature_500)")
     spatial: Optional[Dict[str, float]] = Field(default=None, description="Spatial signals (radial_dist, density_3x3, etc.)")
-    block_readings: Optional[str] = Field(default=None, description="Space-separated 2,000 sub-die block readings")
+    block_readings: Optional[Union[str, List[float]]] = Field(default=None, description="Space-separated string or list of 2,000 sub-die block readings")
     prob_Model_A: Optional[float] = Field(default=None, description="Pre-computed Model A probability override")
     prob_Model_B: Optional[float] = Field(default=None, description="Pre-computed Model B probability override")
     actual_label: Optional[int] = Field(default=None, description="Ground truth post-test label (0=Pass, 1=Fail)")
-    gate_lower: Optional[float] = Field(default=None, description="Uncertainty lower gate override (default 0.295)")
+    gate_lower: Optional[float] = Field(default=None, description="Uncertainty lower gate override (default 0.250)")
     gate_upper: Optional[float] = Field(default=None, description="Uncertainty upper gate override (default 0.550)")
 
 class DieInferenceResponse(BaseModel):

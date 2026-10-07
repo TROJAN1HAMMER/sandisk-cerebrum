@@ -39,6 +39,8 @@ class TestFastAPIBackend(unittest.TestCase):
         self.assertEqual(data["validation_wafers_count"], 32)
         self.assertIn("128 Train / 32 Val", data["canonical_split"])
         self.assertEqual(data["gate_b_window"], "[0.25, 0.55]")
+        self.assertEqual(data["active_model_version"], "B3")
+        self.assertEqual(data["production_gate_b_window"], "[0.250, 0.550]")
 
     def test_03_authoritative_metrics(self):
         """GET /api/v1/models/metrics returns exact verified single source of truth."""
@@ -114,8 +116,8 @@ class TestFastAPIBackend(unittest.TestCase):
         resp = self.client.get("/api/v1/wafers")
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
-        self.assertEqual(data["total_wafers"], 32)
-        self.assertEqual(data["total_holdout_dies"], 27972)
+        self.assertEqual(data["total_wafers"], 160)
+        self.assertEqual(data["total_holdout_dies"], 154037)
 
         # Query single wafer detail and dies
         wid = "W_N_0057"
@@ -177,7 +179,8 @@ class TestFastAPIBackend(unittest.TestCase):
         self.assertEqual(res["gate_status"], "ESCALATED")
         self.assertTrue(res["model_B_invoked"])
         self.assertIsNotNone(res["prob_Model_B"])
-        self.assertGreaterEqual(res["prob_Model_B"], 0.5376)
+        self.assertEqual(res["threshold_Model_B"], 0.5200)
+        self.assertGreaterEqual(res["prob_Model_B"], 0.5200)
         self.assertEqual(res["final_decision"], 1)
 
     def test_10_batch_inference_valid_and_invalid(self):

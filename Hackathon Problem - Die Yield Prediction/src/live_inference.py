@@ -12,18 +12,22 @@ from scipy.ndimage import uniform_filter1d
 from src.block_parser import parse_block_matrix, extract_B1_engineered_features
 from src.spatial import compute_spatial_features
 
-# Locked Production Thresholds
+# Locked Production Thresholds (B3 Multimodal Dual-Stream Cascade)
 MODEL_A_THRESHOLD = 0.5100
-MODEL_B_THRESHOLD = 0.5376
+MODEL_B_THRESHOLD = 0.5200
 
-# Production Gate [0.295, 0.550] (EXP-04 Validated Production Policy)
-# Emergency fallback: MUST NOT use obsolete 0.250 gate
-GATE_B_LOWER = 0.295
+# Production Gate [0.250, 0.550] (B3 Standard Operating Policy)
+GATE_B_LOWER = 0.250
 GATE_B_UPPER = 0.550
 
-# Historical Baseline Gate (for comparative auditing)
+# Historical Baselines (for comparative auditing)
+HISTORICAL_B2_GATE_LOWER = 0.295
+HISTORICAL_B2_GATE_UPPER = 0.550
+HISTORICAL_B2_TAU_B = 0.5376
+
 HISTORICAL_GATE_B_LOWER = 0.25
 HISTORICAL_GATE_B_UPPER = 0.55
+HISTORICAL_GATE_B_TAU = 0.5376
 
 GATE_C_LOWER = 0.30
 GATE_C_UPPER = 0.60
@@ -145,14 +149,21 @@ def predict_single_die_live(
     # Check if raw 500 features are fully supplied
     has_full_500 = all(c in die_dict for c in param_cols)
     
-    if has_full_500:
+    if 'prob_Model_A' in die_dict:
+        p_A = float(die_dict['prob_Model_A'])
+        X_A = None
+    elif hasattr(model_A, 'extract_features'):
+        df_single = pd.DataFrame([die_dict])
+        df_single['die_row'] = r_val
+        df_single['die_col'] = c_val
+        df_single['wafer_id'] = die_dict.get('wafer_id', 'W_TEST_001')
+        X_A = model_A.extract_features(df_single, full_df=df_single)
+        p_A = float(model_A.predict_proba(X_A)[0])
+    elif has_full_500:
         param_vals = [float(die_dict[c]) for c in param_cols]
         spatial_vals = [sp_dict['radial_dist'], sp_dict['density_3x3'], sp_dict['density_5x5'], sp_dict['edge_dist'], sp_dict['die_row'], sp_dict['die_col']]
         X_A = np.array([param_vals + spatial_vals], dtype=np.float32)
         p_A = float(model_A.predict_proba(pd.DataFrame(X_A, columns=param_cols + ['radial_dist', 'density_3x3', 'density_5x5', 'edge_dist', 'die_row', 'die_col']))[0])
-    elif 'prob_Model_A' in die_dict:
-        p_A = float(die_dict['prob_Model_A'])
-        X_A = None
     else:
         param_vals = [float(die_dict.get(c, 0.0)) for c in param_cols]
         spatial_vals = [sp_dict['radial_dist'], sp_dict['density_3x3'], sp_dict['density_5x5'], sp_dict['edge_dist'], sp_dict['die_row'], sp_dict['die_col']]
@@ -171,30 +182,50 @@ def predict_single_die_live(
     if in_gate:
         # Escalated Path -> Run Model B
         compute_path = "ESCALATED PATH"
-        gate_msg = f"Model B was invoked because Model A probability ({p_A:.4f}) fell inside [{gate_lower:.3f}, {gate_upper:.3f}]."
+        gate_msg = f"Escalated to Dual-Stream Model B (LightGBM + 1D-CNN) because Model A probability ({p_A:.4f}) fell inside [{gate_lower:.3f}, {gate_upper:.3f}]."
         
-        # Check Model B feature requirement (526 for B0 vs 536 for B2)
-        b_feat_dim = getattr(model_B, 'n_features_in_', 526)
+        # Check if Model B is B3 Dual-Stream wrapper (tabular + 1D-CNN)
+        is_dual_stream = hasattr(model_B, 'cnn_model') or hasattr(model_B, 'tab_model')
+        b_feat_dim = getattr(model_B, 'n_tabular_features', getattr(model_B, 'n_features_in_', 528 if is_dual_stream else 526))
         
         # Extract Block Features
-        if 'block_readings' in die_dict and isinstance(die_dict['block_readings'], str):
-            b_mat = parse_block_matrix([die_dict['block_readings']], k=2000)
-            b_eng_df = extract_B1_engineered_features(b_mat)
-            b_eng_vals = b_eng_df.values[0]
-            block_eng_dict = b_eng_df.iloc[0].to_dict()
-            
-            if b_feat_dim == 536:
-                b_cand_df = extract_advanced_candidate_block_features(b_mat)
-                block_eng_dict.update(b_cand_df.iloc[0].to_dict())
-                b_combined_vals = np.hstack([b_eng_vals, b_cand_df.values[0]])
+        if 'block_readings' in die_dict and die_dict['block_readings'] is not None:
+            raw_b = die_dict['block_readings']
+            if isinstance(raw_b, str):
+                b_mat = parse_block_matrix([raw_b], k=2000)
+            elif isinstance(raw_b, (list, np.ndarray)):
+                arr = np.array(raw_b, dtype=np.float32)
+                if arr.ndim == 1:
+                    b_mat = np.zeros((1, 2000), dtype=np.float32)
+                    b_mat[0, :min(len(arr), 2000)] = arr[:2000]
+                else:
+                    b_mat = arr
             else:
-                b_combined_vals = b_eng_vals
+                b_mat = None
+
+            if b_mat is not None and is_dual_stream and hasattr(model_B, 'extract_features') and X_A is not None:
+                from src.block_parser import extract_B3_candidate_block_features
+                bstats = extract_B3_candidate_block_features(b_mat)
+                block_eng_dict = bstats.iloc[0].to_dict()
+                X_B = model_B.extract_features(X_A, b_mat)
+                p_B = float(model_B.predict_proba(X_B, b_mat)[0])
+            elif b_mat is not None:
+                b_eng_df = extract_B1_engineered_features(b_mat)
+                b_eng_vals = b_eng_df.values[0]
+                block_eng_dict = b_eng_df.iloc[0].to_dict()
                 
-            if X_A is not None:
-                X_B = np.hstack([X_A, np.array([b_combined_vals], dtype=np.float32)])
-                p_B = float(model_B.predict_proba(X_B)[0, 1])
-            else:
-                p_B = float(die_dict.get('prob_Model_B', 0.5))
+                if b_feat_dim == 536:
+                    b_cand_df = extract_advanced_candidate_block_features(b_mat)
+                    block_eng_dict.update(b_cand_df.iloc[0].to_dict())
+                    b_combined_vals = np.hstack([b_eng_vals, b_cand_df.values[0]])
+                else:
+                    b_combined_vals = b_eng_vals
+                    
+                if X_A is not None:
+                    X_B = np.hstack([X_A, np.array([b_combined_vals], dtype=np.float32)])
+                    p_B = float(model_B.predict_proba(X_B)[0, 1])
+                else:
+                    p_B = float(die_dict.get('prob_Model_B', 0.5))
         elif 'prob_Model_B' in die_dict:
             p_B = float(die_dict['prob_Model_B'])
             eng_keys = ['b_mean', 'b_std', 'b_min', 'b_max', 'cnt_104', 'longest_run_104', 'cluster_area']
@@ -213,8 +244,11 @@ def predict_single_die_live(
                 b_combined_vals = np.array(b_eng_vals, dtype=np.float32)
                 
             if X_A is not None:
-                X_B = np.hstack([X_A, np.array([b_combined_vals], dtype=np.float32)])
-                p_B = float(model_B.predict_proba(X_B)[0, 1])
+                if is_dual_stream and hasattr(model_B, 'predict_proba'):
+                    p_B = float(die_dict.get('prob_Model_B', 0.5))
+                else:
+                    X_B = np.hstack([X_A, np.array([b_combined_vals], dtype=np.float32)])
+                    p_B = float(model_B.predict_proba(X_B)[0, 1])
             else:
                 p_B = 0.5
                 
@@ -224,7 +258,7 @@ def predict_single_die_live(
     else:
         # Fast Path -> Bypass Model B
         compute_path = "FAST PATH"
-        gate_msg = "Model B skipped — unnecessary block computation avoided."
+        gate_msg = "Model B and 1D CNN skipped — confident screening bypassed secondary compute."
         final_prob = p_A
         final_dec = dec_A
         if 'prob_Model_B' in die_dict:
@@ -384,7 +418,7 @@ def execute_full_live_evaluation(
     if 'decision_Model_B' in diag_df.columns:
         pred_B = diag_df['decision_Model_B'].values
     else:
-        pred_B = (p_B >= MODEL_B_THRESHOLD).astype(int)
+        pred_B = (p_B >= HISTORICAL_GATE_B_TAU).astype(int)
     t_B_run = time.time() - t_b0
     
     p_cur_b, r_cur_b, _ = precision_recall_curve(y_val, p_B)
@@ -401,7 +435,7 @@ def execute_full_live_evaluation(
     esc_count_gb = int(in_gate_B.sum())
     esc_pct_gb = float(esc_count_gb / N_total * 100)
     p_final_gb = np.where(in_gate_B, p_B, p_A)
-    pred_final_gb = np.where(in_gate_B, (p_B >= MODEL_B_THRESHOLD).astype(int), (p_A >= MODEL_A_THRESHOLD).astype(int))
+    pred_final_gb = np.where(in_gate_B, (p_B >= HISTORICAL_GATE_B_TAU).astype(int), (p_A >= MODEL_A_THRESHOLD).astype(int))
     
     p_cur_gb, r_cur_gb, _ = precision_recall_curve(y_val, p_final_gb)
     auc_pr_gb = float(auc(r_cur_gb, p_cur_gb))
@@ -424,7 +458,7 @@ def execute_full_live_evaluation(
     esc_count_gc = int(in_gate_C.sum())
     esc_pct_gc = float(esc_count_gc / N_total * 100)
     p_final_gc = np.where(in_gate_C, p_B, p_A)
-    pred_final_gc = np.where(in_gate_C, (p_B >= MODEL_B_THRESHOLD).astype(int), (p_A >= MODEL_A_THRESHOLD).astype(int))
+    pred_final_gc = np.where(in_gate_C, (p_B >= HISTORICAL_GATE_B_TAU).astype(int), (p_A >= MODEL_A_THRESHOLD).astype(int))
     
     p_cur_gc, r_cur_gc, _ = precision_recall_curve(y_val, p_final_gc)
     auc_pr_gc = float(auc(r_cur_gc, p_cur_gc))

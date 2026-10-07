@@ -5,12 +5,14 @@ import { DiePoint, HotspotSummaryItem } from '../types/wafers';
 import { WaferMap, HeatmapMode } from '../components/wafers/WaferMap';
 import { DieInspector } from '../components/wafers/DieInspector';
 import { CrossWaferCompare } from '../components/wafers/CrossWaferCompare';
+import { SearchableWaferSelector } from '../components/wafers/SearchableWaferSelector';
 import { SectionHeader } from '../components/ui/SectionHeader';
 import { MetricCard } from '../components/ui/MetricCard';
 import { Panel } from '../components/ui/Panel';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { LoadingSkeleton } from '../components/ui/LoadingSkeleton';
 import { ErrorState } from '../components/ui/ErrorState';
+import { Tooltip, InfoTooltip } from '../components/ui/Tooltip';
 import {
   Disc,
   Search,
@@ -339,49 +341,58 @@ export const WaferIntelligence: React.FC = () => {
       />
 
       {/* Wafer Selector & Search Control Strip */}
-      <div className="bg-silicon-card border border-silicon-border rounded-lg p-3.5 flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
-        {/* Wafer Selector Dropdown */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <Disc className="w-4 h-4 text-telemetry-cyan shrink-0" />
-          <span className="text-content-muted">Wafer:</span>
-          <select
-            value={selectedWaferId}
-            onChange={(e) => handleSelectWafer(e.target.value)}
-            className="bg-silicon-interactive border border-silicon-border text-content-primary font-bold rounded px-3 py-1.5 focus:outline-none focus:border-telemetry-cyan font-mono"
-          >
-            {wafersList?.wafers.map((w) => (
-              <option key={w.wafer_id} value={w.wafer_id}>
-                {w.wafer_id} — {w.total_dies} dies ({w.actual_failures} defects,{' '}
-                {w.fail_rate_pct.toFixed(1)}% fail)
-              </option>
-            ))}
-          </select>
+      <div className="bg-silicon-card border border-silicon-border rounded-lg p-3.5 flex flex-wrap items-center justify-between gap-4 font-mono text-xs shadow-sm">
+        {/* Searchable Wafer Selector */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <SearchableWaferSelector
+            wafers={wafersList?.wafers || []}
+            selectedWaferId={selectedWaferId}
+            onSelectWafer={handleSelectWafer}
+          />
 
-          {/* Quick preset links for verified demo coordinates */}
+          {/* Quick preset links for verified demo coordinates on active wafer */}
           {selectedWaferId === 'W_N_0057' && (
-            <div className="flex items-center gap-1 ml-2 text-[11px]">
-              <span className="text-content-muted">Demo Dies:</span>
+            <div className="flex items-center gap-1.5 ml-1 text-[11px] flex-wrap">
+              <span className="text-content-muted text-[10px] uppercase font-sans">Presets:</span>
               <button
                 onClick={() => {
-                  const d = waferData?.dies?.find(
-                    (die) => die.die_row === 32 && die.die_col === 23
-                  );
+                  const d = waferData?.dies?.find((die) => die.die_row === 32 && die.die_col === 23);
                   if (d) handleSelectDie(d);
                 }}
                 className="px-2 py-0.5 rounded bg-telemetry-cyan/20 text-telemetry-cyan hover:bg-telemetry-cyan/30 border border-telemetry-cyan/40 transition-colors font-bold"
+                title="Model A missed (P=0.4404); Stage 2 detected (P=0.7691)"
               >
                 R32 C23 (Rescued FN)
               </button>
               <button
                 onClick={() => {
-                  const d = waferData?.dies?.find(
-                    (die) => die.die_row === 18 && die.die_col === 26
-                  );
+                  const d = waferData?.dies?.find((die) => die.die_row === 1 && die.die_col === 17);
                   if (d) handleSelectDie(d);
                 }}
-                className="px-2 py-0.5 rounded bg-telemetry-purple/20 text-telemetry-purple hover:bg-telemetry-purple/30 border border-telemetry-purple/40 transition-colors font-bold"
+                className="px-2 py-0.5 rounded bg-telemetry-green/20 text-telemetry-green hover:bg-telemetry-green/30 border border-telemetry-green/40 transition-colors font-bold"
+                title="Model A confident pass (P=0.0751); Stage 2 bypassed"
               >
-                R18 C26 (Rescued FN)
+                R1 C17 (Fast Pass)
+              </button>
+              <button
+                onClick={() => {
+                  const d = waferData?.dies?.find((die) => die.die_row === 4 && die.die_col === 10);
+                  if (d) handleSelectDie(d);
+                }}
+                className="px-2 py-0.5 rounded bg-telemetry-red/20 text-telemetry-red hover:bg-telemetry-red/30 border border-telemetry-red/40 transition-colors font-bold"
+                title="Severe defect immediately caught (P=0.9020)"
+              >
+                R4 C10 (Severe Defect)
+              </button>
+              <button
+                onClick={() => {
+                  const d = waferData?.dies?.find((die) => die.die_row === 0 && die.die_col === 18);
+                  if (d) handleSelectDie(d);
+                }}
+                className="px-2 py-0.5 rounded bg-telemetry-amber/20 text-telemetry-amber hover:bg-telemetry-amber/30 border border-telemetry-amber/40 transition-colors font-bold"
+                title="Boundary die cleared by Stage 2, saving yield"
+              >
+                R0 C18 (Yield Saved)
               </button>
             </div>
           )}
@@ -393,18 +404,18 @@ export const WaferIntelligence: React.FC = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder='Search Die: "R32 C23", "32/23"'
+                placeholder='Locate Die: "R32 C23", "32/23"'
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setSearchError(null);
                 }}
-                className="bg-silicon-base border border-silicon-border text-content-primary rounded px-2.5 py-1.5 text-xs placeholder:text-content-muted focus:outline-none focus:border-telemetry-cyan font-mono w-52"
+                className="bg-[#09101a] border border-[#2a3c50] text-white placeholder:text-gray-400 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:border-telemetry-cyan focus:ring-1 focus:ring-telemetry-cyan font-mono w-56 caret-telemetry-cyan"
               />
             </div>
             <button
               type="submit"
-              className="px-2.5 py-1.5 rounded bg-silicon-interactive hover:bg-silicon-interactive/80 text-content-primary border border-silicon-border transition-colors flex items-center gap-1"
+              className="px-2.5 py-1.5 rounded bg-silicon-interactive hover:bg-silicon-interactive/80 text-content-primary border border-silicon-border transition-colors flex items-center gap-1 font-semibold"
             >
               <Search className="w-3.5 h-3.5 text-telemetry-cyan" />
               <span>Locate</span>
@@ -428,6 +439,32 @@ export const WaferIntelligence: React.FC = () => {
         </div>
       )}
 
+      {/* Visual Color Legend Quick Guide */}
+      <div className="bg-[#0b131e] border border-[#1e2f42] rounded-lg px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+        <div className="flex items-center gap-4 flex-wrap text-[11px]">
+          <span className="text-content-muted uppercase tracking-wider font-sans text-[10px]">Map Guide:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-sm bg-[#22C55E]" />
+            <span className="text-gray-200">GREEN: Healthy (Predicted Pass)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-sm bg-[#EF4444]" />
+            <span className="text-gray-200">RED: Defect (Predicted Failure)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-sm bg-[#F59E0B]" />
+            <span className="text-gray-200">AMBER: Escalated (Deeper 2nd Stage)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-sm border-2 border-white bg-telemetry-cyan" />
+            <span className="text-gray-200">CYAN: Selected Die</span>
+          </div>
+        </div>
+        <div className="text-[11px] text-telemetry-cyan font-semibold flex items-center gap-1">
+          <span>Active Production Model: B3 Multimodal</span>
+        </div>
+      </div>
+
       {/* Die Quick Filter Bar */}
       <div className="p-3 bg-silicon-card border border-silicon-border rounded-lg flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
         <div className="flex items-center gap-2 flex-wrap">
@@ -437,30 +474,31 @@ export const WaferIntelligence: React.FC = () => {
           </span>
 
           {[
-            { id: 'all', label: 'All Dies' },
-            { id: 'fail', label: 'Defects (FAIL)' },
-            { id: 'pass', label: 'Yield (PASS)' },
-            { id: 'escalated', label: 'Escalated' },
-            { id: 'bypassed', label: 'Bypassed' },
-            { id: 'high_risk', label: 'High Risk (P≥0.50)' },
-            { id: 'recovered', label: 'Rescued FN' },
-            { id: 'fn', label: 'Missed FN' },
-            { id: 'fp', label: 'False Alarms (FP)' },
+            { id: 'all', label: 'All Dies', tip: 'Display all dies on the wafer reticle grid' },
+            { id: 'fail', label: 'Defects (FAIL)', tip: 'Dies predicted to be defective by the cascade system' },
+            { id: 'pass', label: 'Yield (PASS)', tip: 'Dies predicted to pass inspection and be functional' },
+            { id: 'escalated', label: 'Escalated', tip: 'This die needed a second, more detailed check' },
+            { id: 'bypassed', label: 'Bypassed', tip: 'Confidently classified by the first model, skipping Stage 2' },
+            { id: 'high_risk', label: 'High Risk (P≥0.50)', tip: 'Dies with 50% or higher predicted defect risk' },
+            { id: 'recovered', label: 'Rescued FN', tip: 'Model A missed this defect, but Stage 2 detected it' },
+            { id: 'fn', label: 'Missed FN', tip: 'A defective die that the system failed to identify' },
+            { id: 'fp', label: 'False Alarms (FP)', tip: 'Flagged as defective, but actual result shows it was good' },
             ...(hotspotsData?.hotspots && hotspotsData.hotspots.length > 0
-              ? [{ id: 'hotspot', label: `🔥 Hotspots (${hotspotsData.hotspots.length})` }]
+              ? [{ id: 'hotspot', label: `🔥 Hotspots (${hotspotsData.hotspots.length})`, tip: 'A region of the wafer where multiple unusual or defective dies are concentrated' }]
               : []),
           ].map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setFilterMode(f.id)}
-              className={`px-2.5 py-1 rounded text-xs transition-colors ${
-                filterMode === f.id
-                  ? 'bg-telemetry-cyan/20 text-telemetry-cyan border border-telemetry-cyan/40 font-bold'
-                  : 'bg-silicon-surface text-content-secondary hover:text-content-primary border border-silicon-border/60'
-              }`}
-            >
-              {f.label}
-            </button>
+            <Tooltip key={f.id} content={f.tip}>
+              <button
+                onClick={() => setFilterMode(f.id)}
+                className={`px-2.5 py-1 rounded text-xs transition-colors ${
+                  filterMode === f.id
+                    ? 'bg-telemetry-cyan/20 text-telemetry-cyan border border-telemetry-cyan/40 font-bold'
+                    : 'bg-silicon-surface text-content-secondary hover:text-content-primary border border-silicon-border/60'
+                }`}
+              >
+                {f.label}
+              </button>
+            </Tooltip>
           ))}
         </div>
 
@@ -477,39 +515,45 @@ export const WaferIntelligence: React.FC = () => {
       {currentSummary && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <MetricCard
-            title="Total Die Population"
+            title="Total Dies"
             value={currentSummary.total_dies.toLocaleString()}
-            subtitle="Silicon Reticle Matrix"
+            subtitle="Silicon reticle population"
+            tooltip="The complete set of physical silicon chips fabricated across this wafer disk."
             accent="neutral"
           />
           <MetricCard
             title="Predicted Yield"
             value={`${predictedYield}%`}
-            subtitle={`${currentSummary.total_dies - currentSummary.cascade_detections} Good Dies`}
+            subtitle="Estimated percentage of passing dies"
+            tooltip="Estimated percentage of dies expected to pass inspection based on B3 model predictions."
             accent="green"
           />
           <MetricCard
             title="Cascade Defectives"
             value={currentSummary.cascade_detections}
-            subtitle={`vs ${currentSummary.model_a_detections} Model A`}
+            subtitle={`${currentSummary.model_a_detections} by Stage 1`}
+            tooltip="Total dies flagged as defective by the complete multi-stage cascade system."
             accent="red"
           />
           <MetricCard
             title="Ground Truth Failures"
             value={currentSummary.actual_failures}
-            subtitle={`${currentSummary.fail_rate_pct.toFixed(2)}% Defect Base`}
+            subtitle="Known defective dies on wafer"
+            tooltip="Known defective dies on this wafer based on physical electrical post-fab test results."
             accent="red"
           />
           <MetricCard
             title="Stage 2 Escalations"
             value={currentSummary.escalated_dies}
-            subtitle={`${((currentSummary.escalated_dies / currentSummary.total_dies) * 100).toFixed(1)}% of Wafer`}
+            subtitle="Required deeper inspection stage"
+            tooltip="Dies that required the deeper inspection stage because Stage 1 probability was uncertain (0.250 to 0.550)."
             accent="amber"
           />
           <MetricCard
-            title="Rescued Defectives"
+            title="Rescued Defects"
             value={`+${currentSummary.recovered_fns}`}
-            subtitle="FN Escapes Rescued"
+            subtitle="Stage 2 caught what Stage 1 missed"
+            tooltip="Defects detected by the second stage that the first stage initially missed."
             accent="cyan"
           />
         </div>

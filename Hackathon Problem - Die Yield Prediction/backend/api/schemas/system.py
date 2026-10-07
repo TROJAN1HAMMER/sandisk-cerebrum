@@ -19,6 +19,6 @@ class StatusResponse(BaseModel):
     canonical_split: str
     gate_b_window: str
     gate_c_window: str
-    active_model_version: Optional[str] = "B2"
-    production_gate_b_window: Optional[str] = "[0.295, 0.550]"
+    active_model_version: Optional[str] = "B3"
+    production_gate_b_window: Optional[str] = "[0.250, 0.550]"
     startup_time_s: float

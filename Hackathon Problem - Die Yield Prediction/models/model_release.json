@@ -1,33 +1,52 @@
 {
-  "model_name": "SanDisk Cerebrum Die Yield Intelligence",
-  "model_version": "B2",
-  "model_status": "FINAL VALIDATED CANDIDATE",
-  "model_family": "LightGBM selective multi-resolution cascade",
-  "release_timestamp": "2026-10-06T22:45:00Z",
+  "model_name": "SanDisk Cerebrum Multimodal Dual-Stream Intelligence",
+  "model_version": "B3",
+  "model_status": "PRODUCTION",
+  "model_family": "B3 Dual-Stream / Multimodal Dual-Stream Cascade",
+  "release_timestamp": "2026-10-08T00:00:00Z",
   "active_configuration": {
+    "architecture": "B3 Dual-Stream / Multimodal Dual-Stream Cascade",
+    "status": "production",
     "model_A": {
-      "version": "EXP-01 spatial-restored LightGBM",
+      "version": "B3 517-feature LightGBM",
+      "artifact": "models/candidates/model_A_enhanced.pkl",
+      "sha256": "e7fef32dcb9042d6d11e2387cfd6426bee9be7bcdb79778aa20a0db4a34f7e23",
       "threshold": 0.5100,
-      "feature_count": 506
+      "feature_count": 517
     },
     "model_B": {
-      "version": "B2 Enhanced Model B (Frozen Candidate)",
-      "threshold": 0.5376,
-      "feature_count": 536,
-      "active_block_features": 30,
-      "engineered_block_candidates": 10,
-      "restored_spatial_features": 2
+      "version": "B3 528-feature LightGBM",
+      "artifact": "models/candidates/model_B_tab_enhanced.pkl",
+      "sha256": "dc06fdfa55de52717c2d3b858e00433797daf9a9c113d75179b176917e5544a9",
+      "threshold": 0.5200,
+      "feature_count": 528,
+      "active_block_features": 11
+    },
+    "cnn_stream": {
+      "version": "1D CNN, 2,000-block input",
+      "artifact": "models/cnn_1d_block_model.pt",
+      "sha256": "0a081de68dfb0de38bfa1780cf169aab4ab2b4bc5777c8156ac1bed9772160b5",
+      "input_modality": "2,000 raw blocks",
+      "execution_policy": "Evaluated ONLY on escalated dies [0.250, 0.550]"
+    },
+    "pca_pipeline": {
+      "artifact": "models/candidates/pca_pipeline.pkl",
+      "sha256": "144e32238f11c3203f3e84f78511f2ee5d792ba7c38a11e4e2f8f0e7341bef72",
+      "components": 25
+    },
+    "fusion": {
+      "formula": "P_final = 0.90 * P_tabular + 0.10 * P_CNN",
+      "tabular_weight": 0.90,
+      "cnn_weight": 0.10
     },
     "cascade_gate": {
-      "name": "Policy B Preferred",
-      "lower": 0.295,
+      "name": "B3 Standard Operating Policy",
+      "lower": 0.250,
       "upper": 0.550,
-      "historical_baseline_lower": 0.25,
-      "historical_baseline_upper": 0.55
-    },
-    "cnn_auxiliary": {
-      "status": "Diagnostic and Attribution Only (Not concatenated)",
-      "model": "cnn_1d_block_model.pt"
+      "tau_A": 0.5100,
+      "tau_B": 0.5200,
+      "experimental_high_recall_gate": [0.200, 0.500],
+      "experimental_policy_status": "REJECTED_FOR_PRODUCTION"
     }
   },
   "evaluations": {
@@ -38,6 +57,31 @@
       "actual_defects": 1380,
       "defect_rate_pct": 4.2334,
       "cascade_metrics": {
+        "f1": 0.5264,
+        "f2": 0.4246,
+        "mcc": 0.5636,
+        "pr_auc": 0.5004,
+        "roc_auc": 0.8270,
+        "precision": 0.8767,
+        "recall": 0.3761,
+        "tp": 519,
+        "fn": 861,
+        "fp": 73,
+        "tn": 31145,
+        "brier": 0.0314,
+        "ece": 0.0590,
+        "escalation_rate_pct": 3.95,
+        "compute_saved_pct": 96.05,
+        "escalated_dies": 1288,
+        "fast_path_dies": 31310
+      }
+    },
+    "historical_b2_production": {
+      "population": "Independent Ground-Truth Test Set (B2 EXP-04 Benchmark)",
+      "wafers_count": 40,
+      "dies_count": 32598,
+      "actual_defects": 1380,
+      "cascade_metrics": {
         "f1": 0.5177,
         "f2": 0.4190,
         "mcc": 0.5517,
@@ -45,8 +89,6 @@
         "roc_auc": 0.8078,
         "precision": 0.8522,
         "recall": 0.3717,
-        "accuracy": 0.9707,
-        "balanced_accuracy": 0.6844,
         "tp": 513,
         "fn": 867,
         "fp": 89,
@@ -55,30 +97,6 @@
         "compute_saved_pct": 93.78,
         "escalated_dies": 2028,
         "fast_path_dies": 30570
-      },
-      "model_A_alone": {
-        "f1": 0.5005,
-        "f2": 0.3939,
-        "precision": 0.9119,
-        "recall": 0.3449,
-        "tp": 476,
-        "fn": 904,
-        "fp": 46
-      },
-      "rescue_gain": {
-        "net_tp_gain": 37,
-        "fn_rescued": 41,
-        "tp_lost": 4,
-        "fn_reduction": 37,
-        "fn_sent": 176,
-        "rescue_rate_pct": 23.30,
-        "additional_fp": 43
-      },
-      "bootstrap_95_ci": {
-        "f1": [0.4948, 0.5369],
-        "f2": [0.3995, 0.4403],
-        "mcc": [0.5260, 0.5701],
-        "pr_auc": [0.4465, 0.5089]
       }
     },
     "confirmed_canonical_holdout": {

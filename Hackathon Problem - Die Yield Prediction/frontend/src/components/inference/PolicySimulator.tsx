@@ -7,12 +7,12 @@ import { MetricCard } from '../ui/MetricCard';
 import { Sliders, RotateCcw, AlertTriangle, ShieldCheck, Zap, ArrowRight, TrendingUp } from 'lucide-react';
 
 export const PolicySimulator: React.FC = () => {
-  // Frozen baseline settings
+  // B3 Production settings
   const defaultParams = {
     tau_A: 0.5100,
-    gate_lower: 0.2950,
+    gate_lower: 0.2500,
     gate_upper: 0.5500,
-    tau_B: 0.5376,
+    tau_B: 0.5200,
     secondary_budget_pct: null,
   };
 
@@ -95,21 +95,21 @@ export const PolicySimulator: React.FC = () => {
           </span>
           <button
             onClick={() => {
-              setTauA(0.5100); setGateLower(0.2950); setGateUpper(0.5500); setTauB(0.5376);
-              handleSimulate({ tau_A: 0.5100, gate_lower: 0.2950, gate_upper: 0.5500, tau_B: 0.5376 });
-            }}
-            className="px-2.5 py-1 rounded bg-telemetry-green/15 text-telemetry-green border border-telemetry-green/40 hover:bg-telemetry-green/25 font-bold transition-all text-[11px]"
-          >
-            B2 Production Standard [0.295, 0.550]
-          </button>
-          <button
-            onClick={() => {
               setTauA(0.5100); setGateLower(0.2500); setGateUpper(0.5500); setTauB(0.5200);
               handleSimulate({ tau_A: 0.5100, gate_lower: 0.2500, gate_upper: 0.5500, tau_B: 0.5200 });
             }}
+            className="px-2.5 py-1 rounded bg-telemetry-green/15 text-telemetry-green border border-telemetry-green/40 hover:bg-telemetry-green/25 font-bold transition-all text-[11px]"
+          >
+            B3 Production Standard [0.250, 0.550] ★
+          </button>
+          <button
+            onClick={() => {
+              setTauA(0.5100); setGateLower(0.2950); setGateUpper(0.5500); setTauB(0.5376);
+              handleSimulate({ tau_A: 0.5100, gate_lower: 0.2950, gate_upper: 0.5500, tau_B: 0.5376 });
+            }}
             className="px-2.5 py-1 rounded bg-telemetry-purple/15 text-telemetry-purple border border-telemetry-purple/40 hover:bg-telemetry-purple/25 font-bold transition-all text-[11px]"
           >
-            B3 Staged Candidate [0.250, 0.550]
+            Historical B2 Standard [0.295, 0.550]
           </button>
           <button
             onClick={() => {
@@ -259,7 +259,7 @@ export const PolicySimulator: React.FC = () => {
             <div className="text-xs font-mono">
               {simResult?.baseline_comparison?.delta_f1 === 0 ? (
                 <span className="px-2 py-0.5 rounded bg-telemetry-green/20 text-telemetry-green border border-telemetry-green/40 font-bold">
-                  MATCHES PRODUCTION BASELINE (B2)
+                  MATCHES CANONICAL BASELINE
                 </span>
               ) : (
                 <span className="px-2 py-0.5 rounded bg-telemetry-amber/20 text-telemetry-amber border border-telemetry-amber/40 font-bold">

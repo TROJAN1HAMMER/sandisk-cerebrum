@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 import numpy as np
 import pandas as pd
 
-from backend.deps import get_diagnostics_df
+from backend.deps import get_wafers_df
 from backend.api.schemas.wafers import (
     WaferSummaryItem,
     WaferListResponse,
@@ -41,33 +41,33 @@ def _summarize_wafer_group(wid: str, wdf: pd.DataFrame) -> WaferSummaryItem:
     )
 
 
-@router.get("", response_model=WaferListResponse, summary="List All 32 Canonical Validation Wafers")
-def list_wafers(diag_df: pd.DataFrame = Depends(get_diagnostics_df)) -> WaferListResponse:
-    """Returns inventory and aggregate defect/cascade telemetry across all 32 clean holdout wafers."""
-    wafer_ids = sorted(diag_df["wafer_id"].unique())
+@router.get("", response_model=WaferListResponse, summary="List All Canonical Dataset Wafers")
+def list_wafers(wafers_df: pd.DataFrame = Depends(get_wafers_df)) -> WaferListResponse:
+    """Returns inventory and aggregate defect/cascade telemetry across all available canonical dataset wafers."""
+    wafer_ids = sorted(wafers_df["wafer_id"].unique())
     items: List[WaferSummaryItem] = []
     
     for wid in wafer_ids:
-        wdf = diag_df[diag_df["wafer_id"] == wid]
+        wdf = wafers_df[wafers_df["wafer_id"] == wid]
         items.append(_summarize_wafer_group(wid, wdf))
         
     return WaferListResponse(
         total_wafers=len(items),
-        total_holdout_dies=len(diag_df),
+        total_holdout_dies=len(wafers_df),
         wafers=items
     )
 
 @router.get("/{wafer_id}", response_model=WaferSummaryItem, summary="Get Wafer Telemetry Summary")
 def get_wafer_summary(
     wafer_id: str,
-    diag_df: pd.DataFrame = Depends(get_diagnostics_df)
+    wafers_df: pd.DataFrame = Depends(get_wafers_df)
 ) -> WaferSummaryItem:
     """Returns defect rate, escalation count, and recovery telemetry for a specific wafer."""
-    wdf = diag_df[diag_df["wafer_id"] == wafer_id]
+    wdf = wafers_df[wafers_df["wafer_id"] == wafer_id]
     if len(wdf) == 0:
         raise HTTPException(
             status_code=404,
-            detail={"code": "WAFER_NOT_FOUND", "message": f"Wafer ID '{wafer_id}' not found in canonical validation set"}
+            detail={"code": "WAFER_NOT_FOUND", "message": f"Wafer ID '{wafer_id}' not found in canonical dataset"}
         )
     return _summarize_wafer_group(wafer_id, wdf)
 
@@ -79,13 +79,13 @@ def get_wafer_dies(
         description="Filter population: all, predicted_fails, predicted_passes, escalated, recovered_fns, false_alarms"
     ),
     limit: Optional[int] = Query(3000, ge=1, le=5000),
-    diag_df: pd.DataFrame = Depends(get_diagnostics_df)
+    wafers_df: pd.DataFrame = Depends(get_wafers_df)
 ) -> WaferDetailResponse:
     """
     Returns spatial coordinate grid and model predictions for interactive wafer visualization.
     Filters allow visualizing defect clusters, Model A missed failures recovered by Cascade, and false alarms.
     """
-    wdf = diag_df[diag_df["wafer_id"] == wafer_id]
+    wdf = wafers_df[wafers_df["wafer_id"] == wafer_id]
     if len(wdf) == 0:
         raise HTTPException(
             status_code=404,
@@ -152,13 +152,13 @@ def get_single_wafer_die(
     wafer_id: str,
     die_row: int,
     die_col: int,
-    diag_df: pd.DataFrame = Depends(get_diagnostics_df)
+    wafers_df: pd.DataFrame = Depends(get_wafers_df)
 ) -> DiePoint:
     """Returns telemetry and model inference records for a specific physical die on a wafer."""
-    match = diag_df[
-        (diag_df["wafer_id"] == wafer_id) &
-        (diag_df["die_row"] == die_row) &
-        (diag_df["die_col"] == die_col)
+    match = wafers_df[
+        (wafers_df["wafer_id"] == wafer_id) &
+        (wafers_df["die_row"] == die_row) &
+        (wafers_df["die_col"] == die_col)
     ]
     if len(match) == 0:
         raise HTTPException(
@@ -190,13 +190,13 @@ def get_single_wafer_die(
 @router.get("/{wafer_id}/hotspots", response_model=WaferHotspotsResponse, summary="Get Wafer Spatial Hotspot Summaries")
 def get_wafer_hotspots(
     wafer_id: str,
-    diag_df: pd.DataFrame = Depends(get_diagnostics_df)
+    wafers_df: pd.DataFrame = Depends(get_wafers_df)
 ) -> WaferHotspotsResponse:
     """
     Identifies high-risk spatial clusters and hotspot regions on a wafer for targeted engineering inspection.
     Enables instant Wafer -> Hotspot -> Die drilldown navigation.
     """
-    wdf = diag_df[diag_df["wafer_id"] == wafer_id]
+    wdf = wafers_df[wafers_df["wafer_id"] == wafer_id]
     if len(wdf) == 0:
         raise HTTPException(
             status_code=404,

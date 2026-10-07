@@ -16,7 +16,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from src.model_a import ModelAWrapper
+from src.model_a import ModelAWrapper, CandidateModelAWrapper
+from src.model_b import CandidateModelBWrapper
 from src.block_parser import parse_block_matrix, extract_B1_engineered_features
 from src.spatial import compute_spatial_features
 from src.live_inference import (
@@ -175,11 +176,16 @@ st.markdown("""
 # ----------------------------------------------------
 @st.cache_resource
 def load_production_models():
-    """Load trained production models once into memory."""
-    model_A = ModelAWrapper(model_dir=MODELS_DIR)
-    with open(os.path.join(MODELS_DIR, 'model_B.pkl'), 'rb') as f:
-        model_B = pickle.load(f)
-    return model_A, model_B
+    """Load active B3 production models into memory, with fallback to legacy B2."""
+    try:
+        model_A = CandidateModelAWrapper()
+        model_B = CandidateModelBWrapper()
+        return model_A, model_B
+    except Exception:
+        model_A = ModelAWrapper(model_dir=MODELS_DIR)
+        with open(os.path.join(MODELS_DIR, 'model_B.pkl'), 'rb') as f:
+            model_B = pickle.load(f)
+        return model_A, model_B
 
 model_A, model_B = load_production_models()
 

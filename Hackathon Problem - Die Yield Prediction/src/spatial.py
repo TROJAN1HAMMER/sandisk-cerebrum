@@ -101,7 +101,11 @@ def compute_enhanced_spatial_features(df_subset, full_df=None):
         
         old_fail_grid = np.zeros((grid_rows, grid_cols), dtype=float)
         valid_grid = np.zeros((grid_rows, grid_cols), dtype=float)
-        old_fail_grid[full_wafer['die_row'].values, full_wafer['die_col'].values] = full_wafer['old_label'].values
+        if 'old_label' in full_wafer.columns:
+            old_fail_grid[full_wafer['die_row'].values, full_wafer['die_col'].values] = full_wafer['old_label'].values
+            wafer_fail_prior = float(full_wafer['old_label'].mean())
+        else:
+            wafer_fail_prior = 0.0
         valid_grid[full_wafer['die_row'].values, full_wafer['die_col'].values] = 1.0
         
         def get_density(size):
@@ -117,7 +121,6 @@ def compute_enhanced_spatial_features(df_subset, full_df=None):
         
         edge_dist = np.minimum(np.minimum(rows, r_max - rows), np.minimum(cols, c_max - cols))
         norm_edge_dist = edge_dist / (max(r_max, c_max) / 2.0)
-        wafer_fail_prior = float(full_wafer['old_label'].mean())
         
         sub_sp = pd.DataFrame({
             'radial_dist': norm_rad,
